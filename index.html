@@ -74,10 +74,22 @@
             text-transform: uppercase;
         }
 
-        .nav-info {
+        /* Ссылка на GitHub (вместо .nav-info) */
+        .nav-link {
+            background: var(--accent);
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            text-decoration: none;
+            font-weight: 600;
             font-size: 0.875rem;
-            opacity: 0.6;
-            font-family: monospace;
+            transition: background 0.2s;
+            border: none;
+            cursor: pointer;
+        }
+
+        .nav-link:hover {
+            background: var(--accent-hover);
         }
 
         /* Sections */
@@ -97,7 +109,7 @@
 
         .form-grid { display: grid; gap: 1rem; }
         .form-row { display: grid; grid-template-cols: 1fr; gap: 1rem; }
-        @media (min-width: 768px) { .form-row { grid-template-cols: 1fr 1fr; } }
+        @media (min-width: 768px) { .form-row { grid-template-columns: 1fr 1fr; } }
 
         input, select, textarea {
             background: #27272a;
@@ -158,10 +170,10 @@
         /* Feed */
         .feed {
             display: grid;
-            grid-template-cols: 1fr;
+            grid-template-columns: 1fr;
             gap: 1.5rem;
         }
-        @media (min-width: 768px) { .feed { grid-template-cols: 1fr 1fr; } }
+        @media (min-width: 768px) { .feed { grid-template-columns: 1fr 1fr; } }
 
         .post-card {
             background: var(--card-bg);
@@ -305,7 +317,8 @@
     <!-- Navigation -->
     <nav>
         <h1 onclick="window.location.search = ''" class="logo">FOBK</h1>
-        <div class="nav-info">Анонимный хостинг</div>
+        <!-- Заменяем "Анонимный хостинг" на ссылку на GitHub -->
+        <a href="https://github.com/userscode/FOBK/tree/main" target="_blank" rel="noopener noreferrer" class="nav-link">GitHub</a>
     </nav>
 
     <main class="container">
@@ -352,6 +365,9 @@
     </main>
 
     <script type="module">
+        // Спам в консоль при заходе
+        console.log("У НАС ЕСТЬ GITHUB И ТАМ ВЕСЬ ИСХОДНЫЙ КОД!!!");
+
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, collection, addDoc, onSnapshot, doc, getDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
