@@ -1,0 +1,661 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- Базовые мета-теги (Значения по умолчанию) -->
+    <title id="meta-title">FOBK - Делитесь изображениями анонимно</title>
+    <meta name="description" id="meta-desc-tag" content="Безопасный и быстрый хостинг изображений с автоудалением через 7 дней.">
+
+    <!-- Open Graph / Facebook / Telegram / Discord -->
+    <meta property="og:type" content="website">
+    <meta id="og-url" property="og:url" content="https://fobk.app/">
+    <meta id="og-title" property="og:title" content="FOBK - Secure Image Hosting">
+    <meta id="og-description" property="og:description" content="Загрузи фото и поделись ссылкой. Файлы удаляются автоматически через 7 дней.">
+    <meta id="og-image" property="og:image" content="https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=1000&auto=format&fit=crop">
+
+    <style>
+        /* Base Styles */
+        :root {
+            --bg-color: #121212;
+            --card-bg: rgba(255, 255, 255, 0.05);
+            --text-main: #e0e0e0;
+            --text-dim: #a0a0a0;
+            --accent: #6366f1;
+            --accent-hover: #4f46e5;
+            --danger: #ef4444;
+            --success: #22c55e;
+            --border: rgba(255, 255, 255, 0.1);
+            --glass-blur: blur(10px);
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            line-height: 1.5;
+            overflow-x: hidden;
+            min-height: 100vh;
+        }
+
+        /* Layout */
+        .container {
+            max-width: 896px;
+            margin: 0 auto;
+            padding: 1.5rem;
+        }
+
+        /* Navbar */
+        nav {
+            position: sticky;
+            top: 0;
+            z-index: 50;
+            background: var(--card-bg);
+            backdrop-filter: var(--glass-blur);
+            border-bottom: 1px solid var(--border);
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 1.875rem;
+            font-weight: 900;
+            letter-spacing: -0.05em;
+            background: linear-gradient(to right, #60a5fa, #6366f1);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            cursor: pointer;
+            text-transform: uppercase;
+        }
+
+        .nav-info {
+            font-size: 0.875rem;
+            opacity: 0.6;
+            font-family: monospace;
+        }
+
+        /* Sections */
+        .hidden-view { display: none; }
+
+        /* Upload Form */
+        .upload-section {
+            background: var(--card-bg);
+            backdrop-filter: var(--glass-blur);
+            border: 1px solid var(--border);
+            border-radius: 1rem;
+            padding: 1.5rem;
+            margin-bottom: 2.5rem;
+        }
+
+        .section-title { font-size: 1.25rem; font-weight: 600; margin-bottom: 1rem; }
+
+        .form-grid { display: grid; gap: 1rem; }
+        .form-row { display: grid; grid-template-cols: 1fr; gap: 1rem; }
+        @media (min-width: 768px) { .form-row { grid-template-cols: 1fr 1fr; } }
+
+        input, select, textarea {
+            background: #27272a;
+            border: none;
+            padding: 0.75rem;
+            border-radius: 0.5rem;
+            color: white;
+            outline: none;
+            width: 100%;
+        }
+
+        input:focus, select:focus, textarea:focus {
+            box-shadow: 0 0 0 2px var(--accent);
+        }
+
+        textarea { height: 6rem; resize: vertical; }
+
+        .upload-controls { display: flex; flex-direction: column; gap: 1rem; }
+        @media (min-width: 768px) { .upload-controls { flex-direction: row; align-items: center; } }
+
+        .drop-zone {
+            flex: 1;
+            background: #3f3f46;
+            border: 2px dashed #71717a;
+            padding: 0.75rem;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            text-align: center;
+            transition: background 0.2s;
+        }
+
+        .drop-zone:hover { background: #52525b; }
+
+        .upload-btn {
+            background: var(--accent);
+            color: white;
+            padding: 0.75rem 2rem;
+            border-radius: 0.5rem;
+            font-weight: 700;
+            border: none;
+            cursor: pointer;
+            transition: background 0.2s;
+            min-width: 150px;
+        }
+
+        .upload-btn:hover:not(:disabled) { background: var(--accent-hover); }
+        .upload-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        .form-footer {
+            text-align: center;
+            font-size: 10px;
+            color: #71717a;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            margin-top: 1rem;
+        }
+
+        /* Feed */
+        .feed {
+            display: grid;
+            grid-template-cols: 1fr;
+            gap: 1.5rem;
+        }
+        @media (min-width: 768px) { .feed { grid-template-cols: 1fr 1fr; } }
+
+        .post-card {
+            background: var(--card-bg);
+            backdrop-filter: var(--glass-blur);
+            border: 1px solid var(--border);
+            border-radius: 0.75rem;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            transition: transform 0.2s;
+        }
+
+        .post-card:hover { transform: translateY(-5px); }
+
+        .card-img-wrapper { position: relative; cursor: zoom-in; height: 16rem; }
+        .card-img { width: 100%; height: 100%; object-fit: cover; }
+
+        .timer-badge {
+            position: absolute;
+            top: 0.75rem;
+            left: 0.75rem;
+            background: rgba(0,0,0,0.6);
+            backdrop-filter: blur(4px);
+            padding: 0.25rem 0.75rem;
+            border-radius: 99px;
+            border: 1px solid rgba(255,255,255,0.1);
+            font-size: 10px;
+            font-family: monospace;
+            color: #fb923c;
+            font-weight: 700;
+        }
+
+        .card-body { padding: 1rem; flex: 1; display: flex; flex-direction: column; }
+        .card-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.5rem; }
+        .card-title { font-weight: 700; font-size: 1.125rem; cursor: pointer; }
+        .card-title:hover { color: #60a5fa; }
+
+        .card-desc { color: var(--text-dim); font-size: 0.875rem; margin-bottom: 1rem; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+
+        .card-footer { margin-top: auto; padding-top: 0.75rem; border-top: 1px solid rgba(255,255,255,0.05); display: flex; justify-content: space-between; align-items: center; }
+        .author-name { font-size: 0.75rem; font-weight: 500; color: #60a5fa; }
+        .card-meta { font-size: 10px; opacity: 0.4; text-transform: uppercase; }
+
+        /* Single Post View */
+        .back-btn {
+            background: none;
+            border: none;
+            color: #60a5fa;
+            cursor: pointer;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 1rem;
+        }
+        .back-btn:hover { color: #93c5fd; }
+
+        .post-detail-card {
+            background: var(--card-bg);
+            backdrop-filter: var(--glass-blur);
+            border: 1px solid var(--border);
+            border-radius: 1.5rem;
+            overflow: hidden;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        }
+
+        .post-detail-img { width: 100%; max-height: 70vh; object-fit: contain; background: black; cursor: zoom-in; }
+        .post-detail-body { padding: 2rem; }
+
+        .detail-header { display: flex; flex-direction: column; gap: 1rem; margin-bottom: 1rem; }
+        @media (min-width: 768px) { .detail-header { flex-direction: row; justify-content: space-between; align-items: flex-start; } }
+
+        .detail-timer-box {
+            background: rgba(49, 46, 129, 0.4);
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            border: 1px solid rgba(99, 102, 241, 0.3);
+            text-align: center;
+        }
+
+        .detail-desc { color: #d4d4d8; font-size: 1.125rem; margin-bottom: 2rem; white-space: pre-wrap; }
+
+        /* Modal */
+        #modal { display: none; position: fixed; inset: 0; z-index: 100; background: rgba(0,0,0,0.9); align-items: center; justify-content: center; }
+        #modal.active { display: flex; }
+        .modal-content { position: relative; max-width: 90vw; max-height: 80vh; overflow: hidden; display: flex; align-items: center; justify-content: center; }
+        #modal-img { transition: transform 0.2s ease-out; cursor: grab; user-select: none; }
+        #modal-img:active { cursor: grabbing; }
+
+        .close-modal { position: absolute; top: 1.25rem; right: 1.25rem; color: white; font-size: 2.5rem; background: none; border: none; cursor: pointer; z-index: 110; }
+
+        .zoom-controls { position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); display: flex; gap: 1rem; padding: 10px 20px; border-radius: 99px; background: rgba(255,255,255,0.1); backdrop-filter: var(--glass-blur); border: 1px solid rgba(255,255,255,0.2); }
+        .zoom-btn { background: none; border: none; color: white; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: scale 0.1s; font-weight: bold; }
+        .zoom-btn:hover { transform: scale(1.2); }
+
+        /* Notifications */
+        .toast {
+            position: fixed;
+            bottom: 1.25rem;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--accent);
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.75rem;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3);
+            z-index: 200;
+            font-weight: 700;
+            text-align: center;
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+        @media (min-width: 768px) { .toast { left: auto; right: 1.25rem; transform: none; } }
+
+        .paste-active { animation: flash 1s infinite; border-style: solid !important; }
+        @keyframes flash {
+            0% { border-color: rgba(99, 102, 241, 0.5); }
+            50% { border-color: rgba(99, 102, 241, 1); }
+            100% { border-color: rgba(99, 102, 241, 0.5); }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Modal Viewer -->
+    <div id="modal">
+        <button onclick="closeModal()" class="close-modal">&times;</button>
+        <div class="modal-content">
+            <img id="modal-img" src="" alt="Полный экран">
+        </div>
+        <div class="zoom-controls">
+            <button class="zoom-btn" onclick="adjustZoom(-0.2)" title="Отдалить">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="8" y1="11" x2="14" y2="11"/></svg>
+            </button>
+            <button class="zoom-btn" onclick="resetZoom()" title="Сбросить">1:1</button>
+            <button class="zoom-btn" onclick="adjustZoom(0.2)" title="Приблизить">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="11" y1="8" x2="11" y2="14"/><line x1="8" y1="11" x2="14" y2="11"/></svg>
+            </button>
+        </div>
+    </div>
+
+    <!-- Navigation -->
+    <nav>
+        <h1 onclick="window.location.search = ''" class="logo">FOBK</h1>
+        <div class="nav-info">Анонимный хостинг</div>
+    </nav>
+
+    <main class="container">
+
+        <!-- Single Post View -->
+        <section id="single-post-view" class="hidden-view">
+            <button onclick="window.location.search = ''" class="back-btn">
+                <span>← Назад в ленту</span>
+            </button>
+            <div id="single-post-content"></div>
+        </section>
+
+        <!-- Main Feed View -->
+        <section id="main-feed-view">
+            <!-- Upload Form -->
+            <section class="upload-section">
+                <h2 class="section-title">Создать новый пост</h2>
+                <div class="form-grid">
+                    <div class="form-row">
+                        <input type="text" id="post-author" placeholder="Ваше имя (автор)">
+                        <select id="post-privacy">
+                            <option value="public">🌍 Доступен всем (в ленте)</option>
+                            <option value="private">🔗 Только по ссылке</option>
+                        </select>
+                    </div>
+                    <input type="text" id="post-title" placeholder="Заголовок">
+                    <textarea id="post-desc" placeholder="Описание (необязательно)"></textarea>
+
+                    <div class="upload-controls">
+                        <label id="drop-zone" class="drop-zone">
+                            <span id="file-label">Выбрать фото или Ctrl+V</span>
+                            <input type="file" id="post-file" accept="image/*" style="display: none;">
+                        </label>
+                        <button id="upload-btn" class="upload-btn">Опубликовать</button>
+                    </div>
+                    <p class="form-footer">Автоудаление через 7 дней</p>
+                </div>
+            </section>
+
+            <!-- Feed -->
+            <div id="loading-status" style="text-align: center; padding: 2.5rem; opacity: 0.5;">Загрузка ленты...</div>
+            <div id="feed" class="feed"></div>
+        </section>
+    </main>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, addDoc, onSnapshot, doc, getDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyC0QbRc7cNXEQaqU2jrz7iuNAN6rq6j6qs",
+            authDomain: "pymessenger-d1aa7.firebaseapp.com",
+            databaseURL: "https://pymessenger-d1aa7-default-rtdb.firebaseio.com",
+            projectId: "pymessenger-d1aa7",
+            storageBucket: "pymessenger-d1aa7.firebasestorage.app",
+            messagingSenderId: "190695402203",
+            appId: "1:190695402203:web:17d4348a71ce6e2480fafe"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        const appId = "fobk-app-v2";
+        const postsCol = collection(db, 'artifacts', appId, 'public', 'data', 'posts');
+
+        const initAuth = async () => {
+            try { await signInAnonymously(auth); } catch (e) { console.error("Auth error", e); }
+        };
+        initAuth();
+
+        // UI State
+        let currentZoom = 1;
+        let pastedFile = null;
+        const modal = document.getElementById('modal');
+        const modalImg = document.getElementById('modal-img');
+        const feedContainer = document.getElementById('feed');
+        const fileInput = document.getElementById('post-file');
+        const fileLabel = document.getElementById('file-label');
+        const dropZone = document.getElementById('drop-zone');
+        const mainFeedView = document.getElementById('main-feed-view');
+        const singlePostView = document.getElementById('single-post-view');
+        const singlePostContent = document.getElementById('single-post-content');
+
+        // Modal Functions
+        window.openModal = (imgSrc) => {
+            modalImg.src = imgSrc;
+            modal.classList.add('active');
+            document.body.style.overflow = 'hidden';
+            resetZoom();
+        };
+
+        window.closeModal = () => {
+            modal.classList.remove('active');
+            document.body.style.overflow = 'auto';
+        };
+
+        window.adjustZoom = (delta) => {
+            currentZoom = Math.max(0.2, Math.min(5, currentZoom + delta));
+            modalImg.style.transform = `scale(${currentZoom})`;
+        };
+
+        window.resetZoom = () => {
+            currentZoom = 1;
+            modalImg.style.transform = `scale(1)`;
+        };
+
+        modal.onclick = (e) => {
+            if (e.target === modal || e.target.classList.contains('modal-content')) closeModal();
+        };
+
+        // Timer Logic
+        function updateTimers() {
+            document.querySelectorAll('[data-expiry]').forEach(el => {
+                const expiry = parseInt(el.dataset.expiry);
+                const now = Date.now();
+                const diff = expiry - now;
+
+                if (diff <= 0) {
+                    el.innerText = "Удалено";
+                    return;
+                }
+
+                const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+                const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                const mins = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+                const secs = Math.floor((diff % (1000 * 60)) / 1000);
+
+                el.innerText = `${days}д ${hours.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+            });
+        }
+        setInterval(updateTimers, 1000);
+
+        // Router
+        const urlParams = new URLSearchParams(window.location.search);
+        const postIdFromUrl = urlParams.get('post');
+
+        if (postIdFromUrl) loadSinglePost(postIdFromUrl);
+        else loadFeed();
+
+        async function loadSinglePost(id) {
+            mainFeedView.classList.add('hidden-view');
+            singlePostView.classList.remove('hidden-view');
+            singlePostContent.innerHTML = '<p style="text-align: center; padding: 5rem; opacity: 0.5;">Загрузка...</p>';
+
+            try {
+                const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'posts', id);
+                const docSnap = await getDoc(docRef);
+
+                if (docSnap.exists()) {
+                    const post = docSnap.data();
+
+                    // Обновляем мета-теги для Open Graph и SEO
+                    updateMeta(post, id);
+
+                    const now = Date.now();
+                    if (post.expiresAt < now) {
+                        singlePostContent.innerHTML = '<p style="text-align: center; padding: 5rem; color: var(--danger);">Срок действия истек.</p>';
+                        return;
+                    }
+                    singlePostContent.innerHTML = `
+                        <div class="post-detail-card">
+                            <div style="position: relative;">
+                                <img src="${post.imageJson}" class="post-detail-img" onclick="openModal('${post.imageJson}')">
+                                <div style="position: absolute; bottom: 1rem; right: 1rem; display: flex; gap: 0.5rem;">
+                                     <button onclick="copyLink(event, '${id}')" style="background: rgba(0,0,0,0.6); backdrop-filter: blur(4px); padding: 0.5rem 1rem; border-radius: 0.5rem; border: 1px solid rgba(255,255,255,0.2); color: white; cursor: pointer; font-size: 12px; font-weight: bold;">Поделиться</button>
+                                </div>
+                            </div>
+                            <div class="post-detail-body">
+                                <div class="detail-header">
+                                    <h2 style="font-size: 1.875rem; font-weight: 700;">${escapeHtml(post.title)}</h2>
+                                    <div class="detail-timer-box">
+                                        <span style="font-size: 10px; text-transform: uppercase; opacity: 0.6; display: block;">До удаления</span>
+                                        <span style="font-family: monospace; color: #818cf8; font-weight: 700;" data-expiry="${post.expiresAt}">--:--:--</span>
+                                    </div>
+                                </div>
+                                <p class="detail-desc">${escapeHtml(post.description || '')}</p>
+                                <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid rgba(255,255,255,0.1); pt: 1.5rem; margin-top: 2rem; padding-top: 1.5rem;">
+                                    <div>
+                                        <span style="font-size: 0.875rem; opacity: 0.5; display: block; text-transform: uppercase;">Автор</span>
+                                        <span style="color: #60a5fa; font-weight: 700; font-size: 1.25rem;">@${escapeHtml(post.authorName || 'Аноним')}</span>
+                                    </div>
+                                    <div style="text-align: right;">
+                                        <span style="font-size: 10px; opacity: 0.4; display: block; text-transform: uppercase;">Доступ</span>
+                                        <span style="font-size: 12px;">${post.privacy === 'private' ? '🔒 По ссылке' : '🌍 Публичный'}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    singlePostContent.innerHTML = '<p style="text-align: center; padding: 5rem;">Пост не найден.</p>';
+                }
+            } catch (err) { singlePostContent.innerHTML = '<p style="text-align: center; padding: 5rem;">Ошибка загрузки.</p>'; }
+        }
+
+        // Функция для обновления Open Graph фото и текстов
+        function updateMeta(post, id) {
+            const pageTitle = `${post.title} - FOBK`;
+            const pageDesc = post.description || `Изображение от @${post.authorName || 'Аноним'}. Удаление через 7 дней.`;
+            const pageUrl = window.location.href;
+            const imageUrl = post.imageJson;
+
+            // Обычные теги
+            document.title = pageTitle;
+            document.getElementById('meta-title').innerText = pageTitle;
+            document.getElementById('meta-desc-tag').setAttribute('content', pageDesc);
+
+            // Open Graph теги
+            document.getElementById('og-title').setAttribute('content', pageTitle);
+            document.getElementById('og-description').setAttribute('content', pageDesc);
+            document.getElementById('og-url').setAttribute('content', pageUrl);
+            document.getElementById('og-image').setAttribute('content', imageUrl);
+        }
+
+        function loadFeed() {
+            onSnapshot(postsCol, (snapshot) => {
+                document.getElementById('loading-status').style.display = 'none';
+                feedContainer.innerHTML = '';
+                const now = Date.now();
+                let posts = [];
+                snapshot.forEach(doc => {
+                    const data = doc.data();
+                    if (data.expiresAt > now && data.privacy === 'public') {
+                        posts.push({ id: doc.id, ...data });
+                    }
+                });
+                posts.sort((a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
+
+                posts.forEach(post => {
+                    const card = document.createElement('div');
+                    card.className = "post-card";
+                    card.innerHTML = `
+                        <div class="card-img-wrapper" onclick="openModal('${post.imageJson}')">
+                            <img src="${post.imageJson}" alt="${post.title}" class="card-img">
+                            <div class="timer-badge" data-expiry="${post.expiresAt}">--:--:--</div>
+                        </div>
+                        <div class="card-body">
+                            <div class="card-header">
+                                <h3 class="card-title" onclick="window.location.search='?post=${post.id}'">${escapeHtml(post.title)}</h3>
+                                <button onclick="copyLink(event, '${post.id}')" style="background: none; border: none; cursor: pointer; color: white; opacity: 0.5; padding: 0.25rem;">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>
+                                </button>
+                            </div>
+                            <p class="card-desc">${escapeHtml(post.description || '')}</p>
+                            <div class="card-footer">
+                                <span class="author-name">@${escapeHtml(post.authorName || 'Аноним')}</span>
+                                <span class="card-meta">Feed</span>
+                            </div>
+                        </div>
+                    `;
+                    feedContainer.appendChild(card);
+                });
+
+                if (posts.length === 0) {
+                    feedContainer.innerHTML = '<p style="grid-column: 1 / -1; text-align: center; opacity: 0.3; padding: 5rem;">Лента пока пуста.</p>';
+                }
+            });
+        }
+
+        // Paste Logic
+        window.addEventListener('paste', (e) => {
+            const items = (e.clipboardData || e.originalEvent.clipboardData).items;
+            for (let index in items) {
+                const item = items[index];
+                if (item.kind === 'file' && item.type.startsWith('image/')) {
+                    const blob = item.getAsFile();
+                    pastedFile = blob;
+                    fileLabel.innerText = "Фото из буфера готово!";
+                    dropZone.classList.add('paste-active');
+                    setTimeout(() => dropZone.classList.remove('paste-active'), 1000);
+                    showToast("Фото прикреплено!");
+                }
+            }
+        });
+
+        fileInput.onchange = (e) => {
+            if(e.target.files[0]) {
+                pastedFile = null;
+                fileLabel.innerText = e.target.files[0].name;
+            }
+        };
+
+        const fileToBase64 = (file) => new Promise((resolve) => {
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onload = () => resolve(reader.result);
+        });
+
+        document.getElementById('upload-btn').onclick = async () => {
+            const author = document.getElementById('post-author').value || 'Аноним';
+            const title = document.getElementById('post-title').value;
+            const desc = document.getElementById('post-desc').value;
+            const privacy = document.getElementById('post-privacy').value;
+            const file = pastedFile || fileInput.files[0];
+
+            if (!title || !file) return showToast("Заполни заголовок и добавь фото!");
+
+            try {
+                const btn = document.getElementById('upload-btn');
+                btn.disabled = true; btn.innerText = "Публикация...";
+                const base64Data = await fileToBase64(file);
+
+                const newDoc = await addDoc(postsCol, {
+                    title, description: desc, authorName: author,
+                    imageJson: base64Data, privacy: privacy,
+                    createdAt: serverTimestamp(),
+                    expiresAt: Date.now() + (7 * 24 * 60 * 60 * 1000)
+                });
+
+                fileInput.value = '';
+                pastedFile = null;
+                fileLabel.innerText = "Выбрать фото или Ctrl+V";
+                document.getElementById('post-title').value = '';
+                document.getElementById('post-desc').value = '';
+
+                if (privacy === 'private') {
+                    showToast("Опубликовано приватно!");
+                    window.location.search = `?post=${newDoc.id}`;
+                } else {
+                    showToast("Опубликовано в ленту!");
+                }
+            } catch (err) { showToast("Ошибка загрузки"); }
+            finally { document.getElementById('upload-btn').disabled = false; document.getElementById('upload-btn').innerText = "Опубликовать"; }
+        };
+
+        window.copyLink = (event, id) => {
+            event.stopPropagation();
+            const url = window.location.origin + window.location.pathname + '?post=' + id;
+
+            const el = document.createElement('textarea');
+            el.value = url;
+            document.body.appendChild(el);
+            el.select();
+            document.execCommand('copy');
+            document.body.removeChild(el);
+
+            showToast("Ссылка скопирована!");
+        };
+
+        function showToast(msg) {
+            const t = document.createElement('div');
+            t.className = "toast";
+            t.innerText = msg;
+            document.body.appendChild(t);
+            setTimeout(() => t.remove(), 3000);
+        }
+
+        function escapeHtml(t) { const d = document.createElement('div'); d.textContent = t; return d.innerHTML; }
+    </script>
+</body>
+</html>
