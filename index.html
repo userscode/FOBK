@@ -5,14 +5,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <!-- Базовые мета-теги (Значения по умолчанию) -->
-    <title id="meta-title">FOBK - Делитесь изображениями анонимно</title>
-    <meta name="description" id="meta-desc-tag" content="Безопасный и быстрый хостинг изображений с автоудалением через 7 дней.">
+    <title id="meta-title">gapp - Делитесь изображениями и видео</title>
+    <meta name="description" id="meta-desc-tag" content="Безопасный и быстрый хостинг с автоудалением через 7 дней. Поддержка видео.">
 
     <!-- Open Graph / Facebook / Telegram / Discord -->
     <meta property="og:type" content="website">
-    <meta id="og-url" property="og:url" content="https://fobk.app/">
-    <meta id="og-title" property="og:title" content="FOBK - Secure Image Hosting">
-    <meta id="og-description" property="og:description" content="Загрузи фото и поделись ссылкой. Файлы удаляются автоматически через 7 дней.">
+    <meta id="og-url" property="og:url" content="https://gapp.app/">
+    <meta id="og-title" property="og:title" content="gapp - Secure Hosting">
+    <meta id="og-description" property="og:description" content="Загрузи фото или вставь ссылку на видео. Файлы удаляются автоматически через 7 дней.">
     <meta id="og-image" property="og:image" content="https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=1000&auto=format&fit=crop">
 
     <!-- Библиотека для генерации QR-кода -->
@@ -25,8 +25,8 @@
             --card-bg: rgba(255, 255, 255, 0.05);
             --text-main: #e0e0e0;
             --text-dim: #a0a0a0;
-            --accent: #6366f1;
-            --accent-hover: #4f46e5;
+            --accent: #e11d48;        /* красный акцент */
+            --accent-hover: #be123c;   /* тёмно-красный */
             --danger: #ef4444;
             --success: #22c55e;
             --border: rgba(255, 255, 255, 0.1);
@@ -46,7 +46,7 @@
 
         /* Layout */
         .container {
-            max-width: 896px;
+            max-width: 1200px;
             margin: 0 auto;
             padding: 1.5rem;
         }
@@ -63,13 +63,15 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
         }
 
         .logo {
             font-size: 1.875rem;
             font-weight: 900;
             letter-spacing: -0.05em;
-            background: linear-gradient(to right, #60a5fa, #6366f1);
+            background: linear-gradient(to right, #f43f5e, #e11d48); /* красный градиент */
             -webkit-background-clip: text;
             background-clip: text;
             color: transparent;
@@ -77,7 +79,13 @@
             text-transform: uppercase;
         }
 
-        /* Ссылка на GitHub (вместо .nav-info) */
+        .nav-right {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
         .nav-link {
             background: var(--accent);
             color: white;
@@ -95,6 +103,35 @@
             background: var(--accent-hover);
         }
 
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            background: rgba(255,255,255,0.1);
+            padding: 0.25rem 0.5rem 0.25rem 1rem;
+            border-radius: 2rem;
+            border: 1px solid var(--border);
+        }
+        .user-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+        .user-name {
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+        .logout-btn {
+            background: none;
+            border: none;
+            color: var(--text-dim);
+            cursor: pointer;
+            font-size: 1.2rem;
+            padding: 0 0.5rem;
+        }
+        .logout-btn:hover { color: var(--danger); }
+
         /* Sections */
         .hidden-view { display: none; }
 
@@ -111,7 +148,7 @@
         .section-title { font-size: 1.25rem; font-weight: 600; margin-bottom: 1rem; }
 
         .form-grid { display: grid; gap: 1rem; }
-        .form-row { display: grid; grid-template-cols: 1fr; gap: 1rem; }
+        .form-row { display: grid; grid-template-columns: 1fr; gap: 1rem; }
         @media (min-width: 768px) { .form-row { grid-template-columns: 1fr 1fr; } }
 
         input, select, textarea {
@@ -170,13 +207,13 @@
             margin-top: 1rem;
         }
 
-        /* Feed */
+        /* Feed (3 колонки) */
         .feed {
             display: grid;
             grid-template-columns: 1fr;
             gap: 1.5rem;
         }
-        @media (min-width: 768px) { .feed { grid-template-columns: 1fr 1fr; } }
+        @media (min-width: 768px) { .feed { grid-template-columns: repeat(3, 1fr); } }
 
         .post-card {
             background: var(--card-bg);
@@ -191,8 +228,25 @@
 
         .post-card:hover { transform: translateY(-5px); }
 
-        .card-img-wrapper { position: relative; cursor: zoom-in; height: 16rem; }
+        .card-img-wrapper { position: relative; cursor: pointer; height: 12rem; background: #1a1a1a; display: flex; align-items: center; justify-content: center; }
         .card-img { width: 100%; height: 100%; object-fit: cover; }
+        .video-thumb {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: #2a2a2a;
+            color: var(--text-dim);
+            font-size: 0.9rem;
+            gap: 0.5rem;
+        }
+        .video-thumb svg {
+            width: 48px;
+            height: 48px;
+            stroke: var(--accent);
+        }
 
         .timer-badge {
             position: absolute;
@@ -205,26 +259,27 @@
             border: 1px solid rgba(255,255,255,0.1);
             font-size: 10px;
             font-family: monospace;
-            color: #fb923c;
+            color: #f87171; /* красноватый */
             font-weight: 700;
         }
 
         .card-body { padding: 1rem; flex: 1; display: flex; flex-direction: column; }
         .card-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.5rem; }
         .card-title { font-weight: 700; font-size: 1.125rem; cursor: pointer; }
-        .card-title:hover { color: #60a5fa; }
+        .card-title:hover { color: #f87171; } /* красный */
 
         .card-desc { color: var(--text-dim); font-size: 0.875rem; margin-bottom: 1rem; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
 
         .card-footer { margin-top: auto; padding-top: 0.75rem; border-top: 1px solid rgba(255,255,255,0.05); display: flex; justify-content: space-between; align-items: center; }
-        .author-name { font-size: 0.75rem; font-weight: 500; color: #60a5fa; }
+        .author-name { font-size: 0.75rem; font-weight: 500; color: #f87171; cursor: pointer; } /* красный */
+        .author-name:hover { text-decoration: underline; }
         .card-meta { font-size: 10px; opacity: 0.4; text-transform: uppercase; }
 
         /* Single Post View */
         .back-btn {
             background: none;
             border: none;
-            color: #60a5fa;
+            color: #f87171; /* красный */
             cursor: pointer;
             margin-bottom: 1.5rem;
             display: flex;
@@ -232,7 +287,7 @@
             gap: 0.5rem;
             font-size: 1rem;
         }
-        .back-btn:hover { color: #93c5fd; }
+        .back-btn:hover { color: #fca5a5; }
 
         .post-detail-card {
             background: var(--card-bg);
@@ -244,22 +299,37 @@
         }
 
         .post-detail-img { width: 100%; max-height: 70vh; object-fit: contain; background: black; cursor: zoom-in; }
+        .video-container {
+            position: relative;
+            width: 100%;
+            padding-bottom: 56.25%; /* 16:9 */
+            background: black;
+        }
+        .video-container iframe {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+
         .post-detail-body { padding: 2rem; }
 
         .detail-header { display: flex; flex-direction: column; gap: 1rem; margin-bottom: 1rem; }
         @media (min-width: 768px) { .detail-header { flex-direction: row; justify-content: space-between; align-items: flex-start; } }
 
         .detail-timer-box {
-            background: rgba(49, 46, 129, 0.4);
+            background: rgba(185, 28, 28, 0.4); /* красноватый */
             padding: 0.5rem 1rem;
             border-radius: 0.5rem;
-            border: 1px solid rgba(99, 102, 241, 0.3);
+            border: 1px solid rgba(225, 29, 72, 0.3);
             text-align: center;
         }
 
         .detail-desc { color: #d4d4d8; font-size: 1.125rem; margin-bottom: 2rem; white-space: pre-wrap; }
 
-        /* Modal */
+        /* Modal (только для изображений) */
         #modal { display: none; position: fixed; inset: 0; z-index: 100; background: rgba(0,0,0,0.9); align-items: center; justify-content: center; }
         #modal.active { display: flex; }
         .modal-content { position: relative; max-width: 90vw; max-height: 80vh; overflow: hidden; display: flex; align-items: center; justify-content: center; }
@@ -292,15 +362,15 @@
 
         .paste-active { animation: flash 1s infinite; border-style: solid !important; }
         @keyframes flash {
-            0% { border-color: rgba(99, 102, 241, 0.5); }
-            50% { border-color: rgba(99, 102, 241, 1); }
-            100% { border-color: rgba(99, 102, 241, 0.5); }
+            0% { border-color: rgba(225, 29, 72, 0.5); }
+            50% { border-color: rgba(225, 29, 72, 1); }
+            100% { border-color: rgba(225, 29, 72, 0.5); }
         }
     </style>
 </head>
 <body>
 
-    <!-- Modal Viewer -->
+    <!-- Modal Viewer (только для изображений) -->
     <div id="modal">
         <button onclick="closeModal()" class="close-modal">&times;</button>
         <div class="modal-content">
@@ -319,9 +389,12 @@
 
     <!-- Navigation -->
     <nav>
-        <h1 onclick="window.location.search = ''" class="logo">FOBK</h1>
-        <!-- Заменяем "Анонимный хостинг" на ссылку на GitHub -->
-        <a href="https://github.com/userscode/FOBK/tree/main" target="_blank" rel="noopener noreferrer" class="nav-link">GitHub</a>
+        <h1 onclick="window.location.search = ''" class="logo">gapp</h1>
+        <div class="nav-right">
+            <!-- Контейнер для пользователя будет заполнен динамически -->
+            <div id="user-info-placeholder"></div>
+            <a href="https://github.com/userscode/FOBK/tree/main" target="_blank" rel="noopener noreferrer" class="nav-link">GitHub</a>
+        </div>
     </nav>
 
     <main class="container">
@@ -332,6 +405,15 @@
                 <span>← Назад в ленту</span>
             </button>
             <div id="single-post-content"></div>
+        </section>
+
+        <!-- Profile View -->
+        <section id="profile-view" class="hidden-view">
+            <button onclick="window.location.search = ''" class="back-btn">
+                <span>← Назад в ленту</span>
+            </button>
+            <h2 style="margin-bottom: 1.5rem;" id="profile-title">Профиль</h2>
+            <div id="profile-feed" class="feed"></div>
         </section>
 
         <!-- Main Feed View -->
@@ -350,6 +432,9 @@
                     <input type="text" id="post-title" placeholder="Заголовок">
                     <textarea id="post-desc" placeholder="Описание (необязательно)"></textarea>
 
+                    <!-- Поле для ссылки на видео -->
+                    <input type="url" id="post-video-url" placeholder="Ссылка на видео (YouTube, Rutube, Vimeo...)">
+
                     <div class="upload-controls">
                         <label id="drop-zone" class="drop-zone">
                             <span id="file-label">Выбрать фото или Ctrl+V</span>
@@ -357,7 +442,7 @@
                         </label>
                         <button id="upload-btn" class="upload-btn">Опубликовать</button>
                     </div>
-                    <p class="form-footer">Автоудаление через 7 дней</p>
+                    <p class="form-footer">Автоудаление через 7 дней. Если указана ссылка на видео, фото игнорируется.</p>
                 </div>
             </section>
 
@@ -368,47 +453,105 @@
     </main>
 
     <script type="module">
-        // Спам в консоль при заходе
-        console.log("У НАС ЕСТЬ GITHUB И ТАМ ВЕСЬ ИСХОДНЫЙ КОД!!!");
+        // Спам в консоль
+        console.log("gapp с красной темой и поддержкой старых постов");
 
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, collection, addDoc, onSnapshot, doc, getDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, addDoc, onSnapshot, doc, getDoc, serverTimestamp, query, where } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
+        // НОВЫЙ КОНФИГ (предоставлен пользователем)
         const firebaseConfig = {
-            apiKey: "AIzaSyC0QbRc7cNXEQaqU2jrz7iuNAN6rq6j6qs",
-            authDomain: "pymessenger-d1aa7.firebaseapp.com",
-            databaseURL: "https://pymessenger-d1aa7-default-rtdb.firebaseio.com",
-            projectId: "pymessenger-d1aa7",
-            storageBucket: "pymessenger-d1aa7.firebasestorage.app",
-            messagingSenderId: "190695402203",
-            appId: "1:190695402203:web:17d4348a71ce6e2480fafe"
+            apiKey: "AIzaSyDb_xlpLYoVEkd1aObJjzvlS8-JPDjn72E",
+            authDomain: "generalapp-b4f45.firebaseapp.com",
+            projectId: "generalapp-b4f45",
+            storageBucket: "generalapp-b4f45.firebasestorage.app",
+            messagingSenderId: "800461808673",
+            appId: "1:800461808673:web:ec6374f28c7a40ced7ef60",
+            measurementId: "G-JYL0G1J1GJ"
         };
 
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
 
-        const appId = "fobk-app-v2";
-        const postsCol = collection(db, 'artifacts', appId, 'public', 'data', 'posts');
+        // Список возможных appId для поддержки старых постов
+        const possibleAppIds = ['gapp-app-v2', 'fobk-app-v2'];
+        const currentAppId = 'gapp-app-v2'; // текущий для новых постов
 
-        const initAuth = async () => {
-            try { await signInAnonymously(auth); } catch (e) { console.error("Auth error", e); }
-        };
-        initAuth();
+        // Коллекция для новых постов (используется при создании и в ленте)
+        const postsCol = collection(db, 'artifacts', currentAppId, 'public', 'data', 'posts');
 
-        // UI State
-        let currentZoom = 1;
-        let pastedFile = null;
+        let currentUser = null; // будем хранить информацию о пользователе
+
+        // UI элементы
+        const userPlaceholder = document.getElementById('user-info-placeholder');
         const modal = document.getElementById('modal');
         const modalImg = document.getElementById('modal-img');
         const feedContainer = document.getElementById('feed');
+        const profileFeed = document.getElementById('profile-feed');
+        const profileTitle = document.getElementById('profile-title');
         const fileInput = document.getElementById('post-file');
         const fileLabel = document.getElementById('file-label');
         const dropZone = document.getElementById('drop-zone');
         const mainFeedView = document.getElementById('main-feed-view');
         const singlePostView = document.getElementById('single-post-view');
+        const profileView = document.getElementById('profile-view');
         const singlePostContent = document.getElementById('single-post-content');
+
+        let pastedFile = null;
+        let currentZoom = 1;
+
+        // Наблюдаем за состоянием аутентификации
+        onAuthStateChanged(auth, (user) => {
+            currentUser = user;
+            renderUserInfo();
+
+            // Если мы на странице профиля, перезагружаем его (чтобы обновилась видимость приватных постов)
+            const urlParams = new URLSearchParams(window.location.search);
+            const profileId = urlParams.get('profile');
+            if (profileId) {
+                loadProfile(profileId);
+            }
+        });
+
+        // Функция отображения информации о пользователе в навбаре
+        function renderUserInfo() {
+            if (currentUser) {
+                const photoURL = currentUser.photoURL || 'https://via.placeholder.com/32';
+                const displayName = currentUser.displayName || 'Пользователь';
+                userPlaceholder.innerHTML = `
+                    <div class="user-info">
+                        <img src="${photoURL}" class="user-avatar" alt="avatar">
+                        <span class="user-name">${displayName}</span>
+                        <button class="logout-btn" title="Выйти" onclick="handleLogout()">✕</button>
+                    </div>
+                    <button class="nav-link" onclick="window.location.search='?profile=${currentUser.uid}'">Профиль</button>
+                `;
+            } else {
+                userPlaceholder.innerHTML = `<button class="nav-link" onclick="handleGoogleSignIn()">Войти с Google</button>`;
+            }
+        }
+
+        // Обработчики входа/выхода (делаем глобальными, чтобы вызывать из onclick)
+        window.handleGoogleSignIn = async () => {
+            const provider = new GoogleAuthProvider();
+            try {
+                await signInWithPopup(auth, provider);
+            } catch (error) {
+                console.error("Ошибка входа:", error);
+                showToast("Ошибка входа");
+            }
+        };
+
+        window.handleLogout = async () => {
+            try {
+                await signOut(auth);
+                window.location.search = ''; // возвращаем на главную
+            } catch (error) {
+                console.error("Ошибка выхода:", error);
+            }
+        };
 
         // Modal Functions
         window.openModal = (imgSrc) => {
@@ -462,92 +605,158 @@
         // Router
         const urlParams = new URLSearchParams(window.location.search);
         const postIdFromUrl = urlParams.get('post');
+        const profileIdFromUrl = urlParams.get('profile');
 
-        if (postIdFromUrl) loadSinglePost(postIdFromUrl);
-        else loadFeed();
+        if (postIdFromUrl) {
+            loadSinglePost(postIdFromUrl);
+        } else if (profileIdFromUrl) {
+            // Всегда загружаем профиль, независимо от авторизации
+            loadProfile(profileIdFromUrl);
+        } else {
+            mainFeedView.classList.remove('hidden-view');
+            profileView.classList.add('hidden-view');
+            singlePostView.classList.add('hidden-view');
+            loadFeed();
+        }
 
-        async function loadSinglePost(id) {
-            mainFeedView.classList.add('hidden-view');
-            singlePostView.classList.remove('hidden-view');
-            singlePostContent.innerHTML = '<p style="text-align: center; padding: 5rem; opacity: 0.5;">Загрузка...</p>';
-
+        // Функция преобразования ссылки на видео в embed URL
+        function convertToEmbedUrl(url) {
             try {
-                const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'posts', id);
-                const docSnap = await getDoc(docRef);
-
-                if (docSnap.exists()) {
-                    const post = docSnap.data();
-
-                    // Обновляем мета-теги для Open Graph и SEO
-                    updateMeta(post, id);
-
-                    const now = Date.now();
-                    if (post.expiresAt < now) {
-                        singlePostContent.innerHTML = '<p style="text-align: center; padding: 5rem; color: var(--danger);">Срок действия истек.</p>';
-                        return;
+                const urlObj = new URL(url);
+                // YouTube
+                if (urlObj.hostname.includes('youtube.com') || urlObj.hostname.includes('youtu.be')) {
+                    let videoId = '';
+                    if (urlObj.hostname.includes('youtu.be')) {
+                        videoId = urlObj.pathname.slice(1);
+                    } else if (urlObj.pathname === '/watch') {
+                        videoId = urlObj.searchParams.get('v');
+                    } else if (urlObj.pathname.startsWith('/embed/')) {
+                        return url; // уже embed
                     }
-
-                    // Формируем HTML с QR-кодом (canvas получит уникальный id)
-                    singlePostContent.innerHTML = `
-                        <div class="post-detail-card">
-                            <div style="position: relative;">
-                                <img src="${post.imageJson}" class="post-detail-img" onclick="openModal('${post.imageJson}')">
-                                <div style="position: absolute; bottom: 1rem; right: 1rem; display: flex; gap: 0.5rem; align-items: center;">
-                                    <canvas id="qrcode-${id}" width="80" height="80" style="border-radius: 8px; background: white; padding: 4px; box-shadow: 0 2px 8px rgba(0,0,0,0.3);"></canvas>
-                                    <button onclick="copyLink(event, '${id}')" style="background: rgba(0,0,0,0.6); backdrop-filter: blur(4px); padding: 0.5rem 1rem; border-radius: 0.5rem; border: 1px solid rgba(255,255,255,0.2); color: white; cursor: pointer; font-size: 12px; font-weight: bold;">Поделиться</button>
-                                </div>
-                            </div>
-                            <div class="post-detail-body">
-                                <div class="detail-header">
-                                    <h2 style="font-size: 1.875rem; font-weight: 700;">${escapeHtml(post.title)}</h2>
-                                    <div class="detail-timer-box">
-                                        <span style="font-size: 10px; text-transform: uppercase; opacity: 0.6; display: block;">До удаления</span>
-                                        <span style="font-family: monospace; color: #818cf8; font-weight: 700;" data-expiry="${post.expiresAt}">--:--:--</span>
-                                    </div>
-                                </div>
-                                <p class="detail-desc">${escapeHtml(post.description || '')}</p>
-                                <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid rgba(255,255,255,0.1); pt: 1.5rem; margin-top: 2rem; padding-top: 1.5rem;">
-                                    <div>
-                                        <span style="font-size: 0.875rem; opacity: 0.5; display: block; text-transform: uppercase;">Автор</span>
-                                        <span style="color: #60a5fa; font-weight: 700; font-size: 1.25rem;">@${escapeHtml(post.authorName || 'Аноним')}</span>
-                                    </div>
-                                    <div style="text-align: right;">
-                                        <span style="font-size: 10px; opacity: 0.4; display: block; text-transform: uppercase;">Доступ</span>
-                                        <span style="font-size: 12px;">${post.privacy === 'private' ? '🔒 По ссылке' : '🌍 Публичный'}</span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    `;
-
-                    // Генерация QR-кода после вставки HTML
-                    const canvas = document.getElementById(`qrcode-${id}`);
-                    if (canvas && typeof QRCode !== 'undefined') {
-                        QRCode.toCanvas(canvas, window.location.href, { width: 80 }, function(error) {
-                            if (error) console.error('Ошибка генерации QR-кода:', error);
-                        });
-                    }
-                } else {
-                    singlePostContent.innerHTML = '<p style="text-align: center; padding: 5rem;">Пост не найден.</p>';
+                    if (videoId) return `https://www.youtube.com/embed/${videoId}`;
                 }
-            } catch (err) { 
-                singlePostContent.innerHTML = '<p style="text-align: center; padding: 5rem;">Ошибка загрузки.</p>';
+                // Rutube
+                if (urlObj.hostname.includes('rutube.ru')) {
+                    const match = urlObj.pathname.match(/\/video\/([a-f0-9]+)/);
+                    if (match) return `https://rutube.ru/play/embed/${match[1]}`;
+                }
+                // Vimeo
+                if (urlObj.hostname.includes('vimeo.com')) {
+                    const videoId = urlObj.pathname.split('/').pop();
+                    if (videoId) return `https://player.vimeo.com/video/${videoId}`;
+                }
+                // Если ничего не подошло, вернем исходную ссылку
+                return url;
+            } catch (e) {
+                return url; // невалидный URL
             }
         }
 
-        // Функция для обновления Open Graph фото и текстов
-        function updateMeta(post, id) {
-            const pageTitle = `${post.title} - FOBK`;
-            const pageDesc = post.description || `Изображение от @${post.authorName || 'Аноним'}. Удаление через 7 дней.`;
-            const pageUrl = window.location.href;
-            const imageUrl = post.imageJson;
+        // Загрузка поста с поддержкой старых коллекций
+        async function loadSinglePost(id) {
+            mainFeedView.classList.add('hidden-view');
+            profileView.classList.add('hidden-view');
+            singlePostView.classList.remove('hidden-view');
+            singlePostContent.innerHTML = '<p style="text-align: center; padding: 5rem; opacity: 0.5;">Загрузка...</p>';
 
-            // Обычные теги
+            let found = false;
+            let post = null;
+            let usedAppId = null;
+
+            // Перебираем возможные appId
+            for (const appId of possibleAppIds) {
+                try {
+                    const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'posts', id);
+                    const docSnap = await getDoc(docRef);
+                    if (docSnap.exists()) {
+                        post = docSnap.data();
+                        usedAppId = appId;
+                        found = true;
+                        console.log(`Пост найден в коллекции: ${appId}`);
+                        break;
+                    }
+                } catch (e) {
+                    console.warn(`Ошибка при поиске в ${appId}:`, e);
+                }
+            }
+
+            if (!found) {
+                singlePostContent.innerHTML = '<p style="text-align: center; padding: 5rem;">Пост не найден.</p>';
+                return;
+            }
+
+            // Обновляем мета-теги
+            updateMeta(post, id, usedAppId);
+
+            const now = Date.now();
+            if (post.expiresAt < now) {
+                singlePostContent.innerHTML = '<p style="text-align: center; padding: 5rem; color: var(--danger);">Срок действия истек.</p>';
+                return;
+            }
+
+            // Генерируем HTML в зависимости от типа
+            let mediaHtml = '';
+            if (post.type === 'video' && post.videoUrl) {
+                const embedUrl = convertToEmbedUrl(post.videoUrl);
+                mediaHtml = `
+                    <div class="video-container">
+                        <iframe src="${embedUrl}" frameborder="0" allowfullscreen></iframe>
+                    </div>
+                `;
+            } else {
+                mediaHtml = `<img src="${post.imageJson}" class="post-detail-img" onclick="openModal('${post.imageJson}')">`;
+            }
+
+            singlePostContent.innerHTML = `
+                <div class="post-detail-card">
+                    <div style="position: relative;">
+                        ${mediaHtml}
+                        <div style="position: absolute; bottom: 1rem; right: 1rem; display: flex; gap: 0.5rem; align-items: center;">
+                            <canvas id="qrcode-${id}" width="80" height="80" style="border-radius: 8px; background: white; padding: 4px; box-shadow: 0 2px 8px rgba(0,0,0,0.3);"></canvas>
+                            <button onclick="copyLink(event, '${id}')" style="background: rgba(0,0,0,0.6); backdrop-filter: blur(4px); padding: 0.5rem 1rem; border-radius: 0.5rem; border: 1px solid rgba(255,255,255,0.2); color: white; cursor: pointer; font-size: 12px; font-weight: bold;">Поделиться</button>
+                        </div>
+                    </div>
+                    <div class="post-detail-body">
+                        <div class="detail-header">
+                            <h2 style="font-size: 1.875rem; font-weight: 700;">${escapeHtml(post.title)}</h2>
+                            <div class="detail-timer-box">
+                                <span style="font-size: 10px; text-transform: uppercase; opacity: 0.6; display: block;">До удаления</span>
+                                <span style="font-family: monospace; color: #f87171; font-weight: 700;" data-expiry="${post.expiresAt}">--:--:--</span>
+                            </div>
+                        </div>
+                        <p class="detail-desc">${escapeHtml(post.description || '')}</p>
+                        <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid rgba(255,255,255,0.1); margin-top: 2rem; padding-top: 1.5rem;">
+                            <div>
+                                <span style="font-size: 0.875rem; opacity: 0.5; display: block; text-transform: uppercase;">Автор</span>
+                                <span style="color: #f87171; font-weight: 700; font-size: 1.25rem; cursor: pointer;" onclick="window.location.search='?profile=${post.authorUid || ''}'">@${escapeHtml(post.authorName || 'Аноним')}</span>
+                            </div>
+                            <div style="text-align: right;">
+                                <span style="font-size: 10px; opacity: 0.4; display: block; text-transform: uppercase;">Доступ</span>
+                                <span style="font-size: 12px;">${post.privacy === 'private' ? '🔒 По ссылке' : '🌍 Публичный'}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            // Генерация QR-кода
+            const canvas = document.getElementById(`qrcode-${id}`);
+            if (canvas && typeof QRCode !== 'undefined') {
+                QRCode.toCanvas(canvas, window.location.href, { width: 80 }, function(error) {
+                    if (error) console.error('Ошибка генерации QR-кода:', error);
+                });
+            }
+        }
+
+        function updateMeta(post, id, appId) {
+            const pageTitle = `${post.title} - gapp`;
+            const pageDesc = post.description || `Пост от @${post.authorName || 'Аноним'}. Удаление через 7 дней.`;
+            const pageUrl = window.location.href;
+            const imageUrl = post.type === 'video' ? 'https://images.unsplash.com/photo-1611162617213-7d7a39e9b1d7?w=500' : post.imageJson; // заглушка для видео
+
             document.title = pageTitle;
             document.getElementById('meta-title').innerText = pageTitle;
             document.getElementById('meta-desc-tag').setAttribute('content', pageDesc);
-
-            // Open Graph теги
             document.getElementById('og-title').setAttribute('content', pageTitle);
             document.getElementById('og-description').setAttribute('content', pageDesc);
             document.getElementById('og-url').setAttribute('content', pageUrl);
@@ -569,34 +778,103 @@
                 posts.sort((a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
 
                 posts.forEach(post => {
-                    const card = document.createElement('div');
-                    card.className = "post-card";
-                    card.innerHTML = `
-                        <div class="card-img-wrapper" onclick="openModal('${post.imageJson}')">
-                            <img src="${post.imageJson}" alt="${post.title}" class="card-img">
-                            <div class="timer-badge" data-expiry="${post.expiresAt}">--:--:--</div>
-                        </div>
-                        <div class="card-body">
-                            <div class="card-header">
-                                <h3 class="card-title" onclick="window.location.search='?post=${post.id}'">${escapeHtml(post.title)}</h3>
-                                <button onclick="copyLink(event, '${post.id}')" style="background: none; border: none; cursor: pointer; color: white; opacity: 0.5; padding: 0.25rem;">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>
-                                </button>
-                            </div>
-                            <p class="card-desc">${escapeHtml(post.description || '')}</p>
-                            <div class="card-footer">
-                                <span class="author-name">@${escapeHtml(post.authorName || 'Аноним')}</span>
-                                <span class="card-meta">Feed</span>
-                            </div>
-                        </div>
-                    `;
-                    feedContainer.appendChild(card);
+                    feedContainer.appendChild(createPostCard(post));
                 });
 
                 if (posts.length === 0) {
                     feedContainer.innerHTML = '<p style="grid-column: 1 / -1; text-align: center; opacity: 0.3; padding: 5rem;">Лента пока пуста.</p>';
                 }
             });
+        }
+
+        // Загрузка профиля (по uid) — используем только текущую коллекцию
+        function loadProfile(uid) {
+            mainFeedView.classList.add('hidden-view');
+            singlePostView.classList.add('hidden-view');
+            profileView.classList.remove('hidden-view');
+            profileFeed.innerHTML = '<p style="grid-column: 1 / -1; text-align: center; padding: 2.5rem; opacity: 0.5;">Загрузка постов...</p>';
+
+            // Определяем, свой это профиль или чужой
+            const isOwnProfile = currentUser && currentUser.uid === uid;
+            profileTitle.innerText = isOwnProfile ? 'Мои посты' : 'Посты пользователя';
+
+            // Формируем запрос
+            let q;
+            if (isOwnProfile) {
+                // Свои посты — показываем все (включая приватные)
+                q = query(postsCol, where("authorUid", "==", uid));
+            } else {
+                // Чужие посты — только публичные
+                q = query(postsCol, where("authorUid", "==", uid), where("privacy", "==", "public"));
+            }
+
+            onSnapshot(q, (snapshot) => {
+                profileFeed.innerHTML = '';
+                const now = Date.now();
+                let posts = [];
+                snapshot.forEach(doc => {
+                    const data = doc.data();
+                    if (data.expiresAt > now) {
+                        posts.push({ id: doc.id, ...data });
+                    }
+                });
+                posts.sort((a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
+
+                posts.forEach(post => {
+                    profileFeed.appendChild(createPostCard(post));
+                });
+
+                if (posts.length === 0) {
+                    profileFeed.innerHTML = '<p style="grid-column: 1 / -1; text-align: center; opacity: 0.3; padding: 5rem;">Здесь пока нет постов.</p>';
+                }
+            });
+        }
+
+        // Создание карточки поста (используется и в ленте, и в профиле)
+        function createPostCard(post) {
+            const card = document.createElement('div');
+            card.className = "post-card";
+
+            let mediaHtml = '';
+            if (post.type === 'video') {
+                mediaHtml = `
+                    <div class="card-img-wrapper" onclick="window.location.search='?post=${post.id}'">
+                        <div class="video-thumb">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            <span>Видео</span>
+                        </div>
+                        <div class="timer-badge" data-expiry="${post.expiresAt}">--:--:--</div>
+                    </div>
+                `;
+            } else {
+                mediaHtml = `
+                    <div class="card-img-wrapper" onclick="openModal('${post.imageJson}')">
+                        <img src="${post.imageJson}" alt="${post.title}" class="card-img">
+                        <div class="timer-badge" data-expiry="${post.expiresAt}">--:--:--</div>
+                    </div>
+                `;
+            }
+
+            card.innerHTML = `
+                ${mediaHtml}
+                <div class="card-body">
+                    <div class="card-header">
+                        <h3 class="card-title" onclick="window.location.search='?post=${post.id}'">${escapeHtml(post.title)}</h3>
+                        <button onclick="copyLink(event, '${post.id}')" style="background: none; border: none; cursor: pointer; color: white; opacity: 0.5; padding: 0.25rem;">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>
+                        </button>
+                    </div>
+                    <p class="card-desc">${escapeHtml(post.description || '')}</p>
+                    <div class="card-footer">
+                        <span class="author-name" onclick="window.location.search='?profile=${post.authorUid || ''}'">@${escapeHtml(post.authorName || 'Аноним')}</span>
+                        <span class="card-meta">${post.type === 'video' ? '🎬' : '📷'}</span>
+                    </div>
+                </div>
+            `;
+            return card;
         }
 
         // Paste Logic
@@ -633,27 +911,47 @@
             const title = document.getElementById('post-title').value;
             const desc = document.getElementById('post-desc').value;
             const privacy = document.getElementById('post-privacy').value;
+            const videoUrl = document.getElementById('post-video-url').value.trim();
             const file = pastedFile || fileInput.files[0];
 
-            if (!title || !file) return showToast("Заполни заголовок и добавь фото!");
+            // Валидация
+            if (!title) return showToast("Заполни заголовок!");
+            if (!videoUrl && !file) return showToast("Добавь фото или ссылку на видео!");
 
             try {
                 const btn = document.getElementById('upload-btn');
                 btn.disabled = true; btn.innerText = "Публикация...";
-                const base64Data = await fileToBase64(file);
 
-                const newDoc = await addDoc(postsCol, {
-                    title, description: desc, authorName: author,
-                    imageJson: base64Data, privacy: privacy,
+                let postData = {
+                    title,
+                    description: desc,
+                    authorName: author,
+                    privacy: privacy,
                     createdAt: serverTimestamp(),
-                    expiresAt: Date.now() + (7 * 24 * 60 * 60 * 1000)
-                });
+                    expiresAt: Date.now() + (7 * 24 * 60 * 60 * 1000),
+                    authorUid: currentUser ? currentUser.uid : null
+                };
 
+                if (videoUrl) {
+                    // Пост-видео
+                    postData.type = 'video';
+                    postData.videoUrl = videoUrl;
+                } else {
+                    // Пост-изображение
+                    const base64Data = await fileToBase64(file);
+                    postData.type = 'image';
+                    postData.imageJson = base64Data;
+                }
+
+                const newDoc = await addDoc(postsCol, postData);
+
+                // Очистка формы
                 fileInput.value = '';
                 pastedFile = null;
                 fileLabel.innerText = "Выбрать фото или Ctrl+V";
                 document.getElementById('post-title').value = '';
                 document.getElementById('post-desc').value = '';
+                document.getElementById('post-video-url').value = '';
 
                 if (privacy === 'private') {
                     showToast("Опубликовано приватно!");
@@ -661,8 +959,14 @@
                 } else {
                     showToast("Опубликовано в ленту!");
                 }
-            } catch (err) { showToast("Ошибка загрузки"); }
-            finally { document.getElementById('upload-btn').disabled = false; document.getElementById('upload-btn').innerText = "Опубликовать"; }
+            } catch (err) {
+                console.error(err);
+                showToast("Ошибка загрузки");
+            }
+            finally {
+                document.getElementById('upload-btn').disabled = false;
+                document.getElementById('upload-btn').innerText = "Опубликовать";
+            }
         };
 
         window.copyLink = (event, id) => {
@@ -687,7 +991,12 @@
             setTimeout(() => t.remove(), 3000);
         }
 
-        function escapeHtml(t) { const d = document.createElement('div'); d.textContent = t; return d.innerHTML; }
+        function escapeHtml(t) {
+            if (!t) return '';
+            const d = document.createElement('div');
+            d.textContent = t;
+            return d.innerHTML;
+        }
     </script>
 </body>
 </html>
