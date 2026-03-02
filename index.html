@@ -15,6 +15,9 @@
     <meta id="og-description" property="og:description" content="Загрузи фото и поделись ссылкой. Файлы удаляются автоматически через 7 дней.">
     <meta id="og-image" property="og:image" content="https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=1000&auto=format&fit=crop">
 
+    <!-- Библиотека для генерации QR-кода -->
+    <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.1/build/qrcode.min.js"></script>
+
     <style>
         /* Base Styles */
         :root {
@@ -373,13 +376,13 @@
         import { getFirestore, collection, addDoc, onSnapshot, doc, getDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         const firebaseConfig = {
-            apiKey: "YOUR_API_KEY",
-            authDomain: "YOUR_DOMAIN",
-            databaseURL: "YOUR_URL",
-            projectId: "YOUR_PROJECTID",
-            storageBucket: "YOUR_SB",
-            messagingSenderId: "YOUR_MSID",
-            appId: "YOUR_APPID"
+            apiKey: "AIzaSyC0QbRc7cNXEQaqU2jrz7iuNAN6rq6j6qs",
+            authDomain: "pymessenger-d1aa7.firebaseapp.com",
+            databaseURL: "https://pymessenger-d1aa7-default-rtdb.firebaseio.com",
+            projectId: "pymessenger-d1aa7",
+            storageBucket: "pymessenger-d1aa7.firebasestorage.app",
+            messagingSenderId: "190695402203",
+            appId: "1:190695402203:web:17d4348a71ce6e2480fafe"
         };
 
         const app = initializeApp(firebaseConfig);
@@ -483,12 +486,15 @@
                         singlePostContent.innerHTML = '<p style="text-align: center; padding: 5rem; color: var(--danger);">Срок действия истек.</p>';
                         return;
                     }
+
+                    // Формируем HTML с QR-кодом (canvas получит уникальный id)
                     singlePostContent.innerHTML = `
                         <div class="post-detail-card">
                             <div style="position: relative;">
                                 <img src="${post.imageJson}" class="post-detail-img" onclick="openModal('${post.imageJson}')">
-                                <div style="position: absolute; bottom: 1rem; right: 1rem; display: flex; gap: 0.5rem;">
-                                     <button onclick="copyLink(event, '${id}')" style="background: rgba(0,0,0,0.6); backdrop-filter: blur(4px); padding: 0.5rem 1rem; border-radius: 0.5rem; border: 1px solid rgba(255,255,255,0.2); color: white; cursor: pointer; font-size: 12px; font-weight: bold;">Поделиться</button>
+                                <div style="position: absolute; bottom: 1rem; right: 1rem; display: flex; gap: 0.5rem; align-items: center;">
+                                    <canvas id="qrcode-${id}" width="80" height="80" style="border-radius: 8px; background: white; padding: 4px; box-shadow: 0 2px 8px rgba(0,0,0,0.3);"></canvas>
+                                    <button onclick="copyLink(event, '${id}')" style="background: rgba(0,0,0,0.6); backdrop-filter: blur(4px); padding: 0.5rem 1rem; border-radius: 0.5rem; border: 1px solid rgba(255,255,255,0.2); color: white; cursor: pointer; font-size: 12px; font-weight: bold;">Поделиться</button>
                                 </div>
                             </div>
                             <div class="post-detail-body">
@@ -513,10 +519,20 @@
                             </div>
                         </div>
                     `;
+
+                    // Генерация QR-кода после вставки HTML
+                    const canvas = document.getElementById(`qrcode-${id}`);
+                    if (canvas && typeof QRCode !== 'undefined') {
+                        QRCode.toCanvas(canvas, window.location.href, { width: 80 }, function(error) {
+                            if (error) console.error('Ошибка генерации QR-кода:', error);
+                        });
+                    }
                 } else {
                     singlePostContent.innerHTML = '<p style="text-align: center; padding: 5rem;">Пост не найден.</p>';
                 }
-            } catch (err) { singlePostContent.innerHTML = '<p style="text-align: center; padding: 5rem;">Ошибка загрузки.</p>'; }
+            } catch (err) { 
+                singlePostContent.innerHTML = '<p style="text-align: center; padding: 5rem;">Ошибка загрузки.</p>';
+            }
         }
 
         // Функция для обновления Open Graph фото и текстов
