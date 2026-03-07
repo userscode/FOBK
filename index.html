@@ -36,10 +36,42 @@
             font-size: 22px;
             font-weight: bold;
             color: var(--primary-color);
-            margin-bottom: 30px;
+            margin-bottom: 20px;
             display: flex;
             align-items: center;
             gap: 10px;
+        }
+
+        .user-profile {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px;
+            margin-bottom: 20px;
+            background: #f1f3f4;
+            border-radius: 12px;
+            font-size: 13px;
+        }
+
+        .user-profile img {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+        }
+
+        .btn-google {
+            background: #fff;
+            color: #3c4043;
+            border: 1px solid var(--border-color);
+            padding: 10px;
+            border-radius: 8px;
+            font-weight: 500;
+            cursor: pointer;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
         }
 
         .btn-add {
@@ -50,7 +82,7 @@
             border-radius: 16px;
             font-weight: 500;
             cursor: pointer;
-            margin-bottom: 20px;
+            margin-bottom: 10px;
             transition: box-shadow 0.2s;
         }
 
@@ -62,6 +94,7 @@
             list-style: none;
             padding: 0;
             margin: 0;
+            overflow-y: auto;
         }
 
         .account-item {
@@ -75,15 +108,8 @@
             justify-content: space-between;
         }
 
-        .account-item:hover {
-            background-color: #f1f3f4;
-        }
-
-        .account-item.active {
-            background-color: #e8f0fe;
-            color: #1967d2;
-            font-weight: bold;
-        }
+        .account-item:hover { background-color: #f1f3f4; }
+        .account-item.active { background-color: #e8f0fe; color: #1967d2; font-weight: bold; }
 
         /* Main Content */
         .main-content {
@@ -133,41 +159,15 @@
             z-index: 1;
         }
 
-        .email-sender {
-            font-weight: bold;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-
-        .email-subject {
-            color: #5f6368;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-
-        .email-account-tag {
-            font-size: 10px;
-            background: #e8eaed;
-            padding: 2px 6px;
-            border-radius: 4px;
-            margin-right: 10px;
-            color: #3c4043;
-        }
-
-        .email-date {
-            text-align: right;
-            color: #5f6368;
-        }
+        .email-sender { font-weight: bold; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .email-subject { color: #5f6368; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .email-account-tag { font-size: 10px; background: #e8eaed; padding: 2px 6px; border-radius: 4px; margin-right: 10px; color: #3c4043; }
+        .email-date { text-align: right; color: #5f6368; }
 
         /* Modals */
         .modal-overlay {
             position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
+            top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0,0,0,0.5);
             display: none;
             justify-content: center;
@@ -176,50 +176,20 @@
         }
 
         .modal {
-            background: white;
-            padding: 25px;
-            border-radius: 8px;
-            width: 400px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            background: white; padding: 25px; border-radius: 8px; width: 400px;
         }
 
-        .modal h2 { margin-top: 0; font-size: 18px; }
-        .modal input, .modal textarea {
-            width: 100%;
-            padding: 10px;
-            margin: 10px 0;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            box-sizing: border-box;
-        }
-
-        .modal-actions {
-            display: flex;
-            justify-content: flex-end;
-            gap: 10px;
-            margin-top: 20px;
-        }
-
-        .btn {
-            padding: 8px 16px;
-            border-radius: 4px;
-            cursor: pointer;
-            border: none;
-            font-weight: 500;
-        }
-
+        .modal input, .modal textarea { width: 100%; padding: 10px; margin: 10px 0; border: 1px solid #ccc; border-radius: 4px; }
+        .modal-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px; }
+        
+        .btn { padding: 8px 16px; border-radius: 4px; cursor: pointer; border: none; font-weight: 500; }
         .btn-primary { background: var(--primary-color); color: white; }
         .btn-secondary { background: #e8eaed; color: #3c4043; }
 
         #loading {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            background: #323232;
-            color: white;
-            padding: 10px 20px;
-            border-radius: 4px;
-            display: none;
+            position: fixed; top: 20px; right: 20px;
+            background: #323232; color: white; padding: 10px 20px; border-radius: 4px;
+            display: none; z-index: 1000;
         }
     </style>
 </head>
@@ -232,27 +202,34 @@
             <svg width="24" height="24" viewBox="0 0 24 24"><path fill="currentColor" d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5l-8-5V6l8 5l8-5v2z"/></svg>
             Multi-Gmail
         </div>
-        <button class="btn-add" onclick="showModal('accountModal')">＋ Добавить аккаунт</button>
-        <button class="btn-add" style="background:#fce8e6" onclick="showModal('emailModal')">✉ Написать письмо</button>
-        
-        <div style="font-weight: bold; margin-bottom: 10px; font-size: 12px; color: #5f6368; text-transform: uppercase;">Аккаунты</div>
-        <ul class="account-list" id="accountList">
-            <!-- Аккаунты будут здесь -->
-        </ul>
+
+        <div id="authSection">
+            <!-- Кнопка входа или профиль -->
+            <button class="btn-google" id="loginBtn">
+                <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" width="18">
+                Войти через Google
+            </button>
+        </div>
+
+        <div id="appControls" style="display: none;">
+            <button class="btn-add" onclick="showModal('accountModal')">＋ Добавить аккаунт</button>
+            <button class="btn-add" style="background:#fce8e6" onclick="showModal('emailModal')">✉ Написать письмо</button>
+            
+            <div style="font-weight: bold; margin: 15px 0 10px; font-size: 11px; color: #5f6368; text-transform: uppercase;">Аккаунты</div>
+            <ul class="account-list" id="accountList"></ul>
+            <button class="btn" style="margin-top: auto; font-size: 12px; color: #c04b37;" id="logoutBtn">Выйти</button>
+        </div>
     </aside>
 
     <main class="main-content">
         <header class="header">
             <input type="text" class="search-bar" placeholder="Поиск в почте">
-            <div id="statusInfo">Всего сообщений: 0</div>
+            <div id="statusInfo">Войдите, чтобы увидеть сообщения</div>
         </header>
-
-        <div class="inbox-list" id="emailList">
-            <!-- Письма будут здесь -->
-        </div>
+        <div class="inbox-list" id="emailList"></div>
     </main>
 
-    <!-- Modal for Adding Account -->
+    <!-- Modals -->
     <div class="modal-overlay" id="accountModal">
         <div class="modal">
             <h2>Добавить новый аккаунт</h2>
@@ -264,7 +241,6 @@
         </div>
     </div>
 
-    <!-- Modal for Sending Email (Simulation) -->
     <div class="modal-overlay" id="emailModal">
         <div class="modal">
             <h2>Симуляция входящего письма</h2>
@@ -279,11 +255,10 @@
         </div>
     </div>
 
-    <!-- Firebase SDK -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, collection, addDoc, onSnapshot, query, doc, deleteDoc, orderBy } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, addDoc, onSnapshot, query, doc, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyDb_xlpLYoVEkd1aObJjzvlS8-JPDjn72E",
@@ -299,181 +274,150 @@
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
+        const provider = new GoogleAuthProvider();
         const appId = "multi-gmail-app";
 
         let currentUser = null;
         let accounts = [];
         let emails = [];
+        let unsubscribes = [];
 
-        // Auth initialization
-        const initAuth = async () => {
-            showLoading(true);
+        // Auth Logic
+        document.getElementById('loginBtn').onclick = async () => {
             try {
-                await signInAnonymously(auth);
+                await signInWithPopup(auth, provider);
             } catch (error) {
                 console.error("Auth error:", error);
-                showMessage("Ошибка авторизации");
             }
         };
+
+        document.getElementById('logoutBtn').onclick = () => signOut(auth);
 
         onAuthStateChanged(auth, (user) => {
             currentUser = user;
+            const authSection = document.getElementById('authSection');
+            const appControls = document.getElementById('appControls');
+            
+            unsubscribes.forEach(unsub => unsub());
+            unsubscribes = [];
+
             if (user) {
+                authSection.innerHTML = `
+                    <div class="user-profile">
+                        <img src="${user.photoURL || 'https://via.placeholder.com/32'}" alt="Avatar">
+                        <div style="overflow: hidden; text-overflow: ellipsis;">
+                            <b>${user.displayName}</b><br>
+                            <small>${user.email}</small>
+                        </div>
+                    </div>
+                `;
+                appControls.style.display = 'flex';
+                appControls.style.flexDirection = 'column';
                 setupSubscriptions();
+            } else {
+                authSection.innerHTML = `
+                    <button class="btn-google" id="loginBtn">
+                        <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" width="18">
+                        Войти через Google
+                    </button>
+                `;
+                document.getElementById('loginBtn').onclick = () => signInWithPopup(auth, provider);
+                appControls.style.display = 'none';
+                document.getElementById('emailList').innerHTML = '<div style="padding: 40px; text-align: center;">Пожалуйста, войдите в аккаунт</div>';
+                document.getElementById('statusInfo').innerText = 'Войдите, чтобы продолжить';
+                document.getElementById('accountList').innerHTML = '';
             }
-            showLoading(false);
         });
 
-        // Setup Firestore Subscriptions
         function setupSubscriptions() {
-            const accountsRef = collection(db, 'artifacts', appId, 'users', currentUser.uid, 'accounts');
-            const emailsRef = collection(db, 'artifacts', appId, 'users', currentUser.uid, 'emails');
+            if (!currentUser) return;
+            showLoading(true);
 
-            // Listen for accounts
-            onSnapshot(accountsRef, (snapshot) => {
-                accounts = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            const accPath = collection(db, 'artifacts', appId, 'users', currentUser.uid, 'accounts');
+            const emailPath = collection(db, 'artifacts', appId, 'users', currentUser.uid, 'emails');
+
+            const unsubAcc = onSnapshot(accPath, (snap) => {
+                accounts = snap.docs.map(d => ({ id: d.id, ...d.data() }));
                 renderAccounts();
                 updateAccountSelect();
-            }, (err) => console.error("Accounts list error:", err));
+                showLoading(false);
+            });
 
-            // Listen for emails
-            onSnapshot(emailsRef, (snapshot) => {
-                emails = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                // Sort by date in memory (Rule 2: avoid complex query if possible)
+            const unsubEmail = onSnapshot(emailPath, (snap) => {
+                emails = snap.docs.map(d => ({ id: d.id, ...d.data() }));
                 emails.sort((a, b) => b.timestamp - a.timestamp);
                 renderEmails();
-            }, (err) => console.error("Email list error:", err));
+            });
+
+            unsubscribes.push(unsubAcc, unsubEmail);
         }
 
-        // --- Functions ---
+        // --- Logic Functions ---
 
         window.addAccount = async () => {
-            const emailInput = document.getElementById('newAccountEmail');
-            const email = emailInput.value.trim();
+            const email = document.getElementById('newAccountEmail').value.trim();
             if (!email || !currentUser) return;
-
-            showLoading(true);
-            try {
-                await addDoc(collection(db, 'artifacts', appId, 'users', currentUser.uid, 'accounts'), {
-                    email: email,
-                    createdAt: Date.now()
-                });
-                emailInput.value = '';
-                hideModal('accountModal');
-            } catch (e) {
-                console.error(e);
-            }
-            showLoading(false);
+            await addDoc(collection(db, 'artifacts', appId, 'users', currentUser.uid, 'accounts'), {
+                email, createdAt: Date.now()
+            });
+            hideModal('accountModal');
+            document.getElementById('newAccountEmail').value = '';
         };
 
         window.sendEmail = async () => {
-            const targetAccount = document.getElementById('selectAccount').value;
-            const sender = document.getElementById('emailSender').value.trim();
-            const subject = document.getElementById('emailSubject').value.trim();
+            const to = document.getElementById('selectAccount').value;
+            const from = document.getElementById('emailSender').value.trim();
+            const sub = document.getElementById('emailSubject').value.trim();
             const body = document.getElementById('emailBody').value.trim();
-
-            if (!targetAccount || !sender || !currentUser) return;
-
-            showLoading(true);
-            try {
-                await addDoc(collection(db, 'artifacts', appId, 'users', currentUser.uid, 'emails'), {
-                    toAccount: targetAccount,
-                    sender: sender,
-                    subject: subject,
-                    body: body,
-                    timestamp: Date.now()
-                });
-                hideModal('emailModal');
-            } catch (e) {
-                console.error(e);
-            }
-            showLoading(false);
+            if (!to || !from || !currentUser) return;
+            await addDoc(collection(db, 'artifacts', appId, 'users', currentUser.uid, 'emails'), {
+                toAccount: to, sender: from, subject: sub, body: body, timestamp: Date.now()
+            });
+            hideModal('emailModal');
         };
 
         function renderAccounts() {
             const list = document.getElementById('accountList');
-            list.innerHTML = `
-                <li class="account-item active" onclick="filterEmails('all')">
-                    <span>Все ящики</span>
-                    <span style="font-size:10px">${emails.length}</span>
-                </li>
-            `;
-            
+            list.innerHTML = `<li class="account-item active" onclick="filterEmails('all')"><span>Все ящики</span><span>${emails.length}</span></li>`;
             accounts.forEach(acc => {
                 const count = emails.filter(e => e.toAccount === acc.email).length;
                 const li = document.createElement('li');
                 li.className = 'account-item';
-                li.innerHTML = `
-                    <span title="${acc.email}">${acc.email.split('@')[0]}</span>
-                    <span style="font-size:10px">${count}</span>
-                `;
-                li.onclick = () => filterEmails(acc.email);
+                li.innerHTML = `<span>${acc.email.split('@')[0]}</span><span>${count}</span>`;
+                li.onclick = (e) => {
+                    document.querySelectorAll('.account-item').forEach(el => el.classList.remove('active'));
+                    li.classList.add('active');
+                    renderEmails(acc.email);
+                };
                 list.appendChild(li);
             });
         }
 
         function renderEmails(filter = 'all') {
             const list = document.getElementById('emailList');
-            list.innerHTML = '';
-            
-            const filtered = filter === 'all' 
-                ? emails 
-                : emails.filter(e => e.toAccount === filter);
-
+            const filtered = filter === 'all' ? emails : emails.filter(e => e.toAccount === filter);
             document.getElementById('statusInfo').innerText = `Сообщений: ${filtered.length}`;
-
-            if (filtered.length === 0) {
-                list.innerHTML = '<div style="padding: 40px; text-align: center; color: #5f6368;">Входящих сообщений пока нет</div>';
-                return;
-            }
-
-            filtered.forEach(mail => {
-                const date = new Date(mail.timestamp).toLocaleDateString([], { month: 'short', day: 'numeric' });
-                const item = document.createElement('div');
-                item.className = 'email-item';
-                item.innerHTML = `
-                    <div class="email-sender">${mail.sender}</div>
-                    <div class="email-subject">
-                        <span class="email-account-tag">${mail.toAccount}</span>
-                        ${mail.subject} - <span style="font-weight: normal; color: #80868b">${mail.body.substring(0, 50)}...</span>
-                    </div>
-                    <div class="email-date">${date}</div>
+            list.innerHTML = filtered.length ? '' : '<div style="padding:40px; text-align:center; color:#5f6368;">Пусто</div>';
+            filtered.forEach(m => {
+                const div = document.createElement('div');
+                div.className = 'email-item';
+                div.innerHTML = `
+                    <div class="email-sender">${m.sender}</div>
+                    <div class="email-subject"><span class="email-account-tag">${m.toAccount}</span>${m.subject}</div>
+                    <div class="email-date">${new Date(m.timestamp).toLocaleDateString()}</div>
                 `;
-                list.appendChild(item);
+                list.appendChild(div);
             });
         }
 
-        window.filterEmails = (account) => {
-            renderEmails(account);
-            // Visual active state
-            const items = document.querySelectorAll('.account-item');
-            items.forEach(i => i.classList.remove('active'));
-            event.currentTarget.classList.add('active');
-        };
-
         function updateAccountSelect() {
-            const select = document.getElementById('selectAccount');
-            select.innerHTML = accounts.map(acc => `<option value="${acc.email}">${acc.email}</option>`).join('');
-            if (accounts.length === 0) {
-                select.innerHTML = '<option disabled>Сначала добавьте аккаунт</option>';
-            }
+            const sel = document.getElementById('selectAccount');
+            sel.innerHTML = accounts.map(a => `<option value="${a.email}">${a.email}</option>`).join('');
         }
 
-        // UI Helpers
         window.showModal = (id) => document.getElementById(id).style.display = 'flex';
         window.hideModal = (id) => document.getElementById(id).style.display = 'none';
-        
-        function showLoading(show) {
-            document.getElementById('loading').style.display = show ? 'block' : 'none';
-        }
-
-        function showMessage(msg) {
-            const status = document.getElementById('statusInfo');
-            status.innerText = msg;
-            setTimeout(() => status.innerText = `Всего сообщений: ${emails.length}`, 3000);
-        }
-
-        initAuth();
+        function showLoading(s) { document.getElementById('loading').style.display = s ? 'block' : 'none'; }
 
     </script>
 </body>
