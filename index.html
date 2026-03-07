@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>gapp(test) - Платформа прогнозов</title>
+    <title>gapp(test) — лента прогнозов</title>
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
     <!-- Chart.js -->
@@ -47,8 +47,14 @@
             z-index: 100;
         }
 
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 2rem;
+        }
+
         .container {
-            max-width: 1000px;
+            max-width: 1200px;
             margin: 2rem auto;
             padding: 0 1rem;
         }
@@ -82,22 +88,25 @@
         .card {
             background: var(--card);
             border-radius: 12px;
-            padding: 1.5rem;
-            margin-bottom: 1.5rem;
+            padding: 1rem;
             border: 1px solid var(--border);
             box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            display: flex;
+            flex-direction: column;
+            height: fit-content;
         }
 
         .card-header {
             display: flex;
+            flex-wrap: wrap;
             justify-content: space-between;
             align-items: flex-start;
-            margin-bottom: 1rem;
+            margin-bottom: 0.75rem;
         }
 
         .status-badge {
-            font-size: 0.75rem;
-            padding: 0.25rem 0.5rem;
+            font-size: 0.7rem;
+            padding: 0.2rem 0.5rem;
             border-radius: 4px;
             text-transform: uppercase;
             font-weight: bold;
@@ -106,18 +115,28 @@
         .status-active { background: #dcfce7; color: #166534; }
         .status-closed { background: #f1f5f9; color: #475569; }
 
+        .card h2 {
+            font-size: 1.1rem;
+            margin: 0.5rem 0 0.25rem;
+        }
+
+        .card p {
+            font-size: 0.9rem;
+            color: var(--text-light);
+        }
+
         /* Voting UI */
         .vote-options {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 1rem;
-            margin: 1rem 0;
+            gap: 0.5rem;
+            margin: 0.75rem 0;
         }
 
         .vote-btn {
-            padding: 1rem;
-            border: 2px solid var(--border);
-            border-radius: 12px;
+            padding: 0.5rem;
+            border: 1px solid var(--border);
+            border-radius: 8px;
             text-align: center;
             cursor: pointer;
             transition: all 0.2s;
@@ -127,7 +146,7 @@
         .vote-btn.selected { border-color: var(--primary); background: #f5f3ff; }
 
         .vote-count {
-            font-size: 1.25rem;
+            font-size: 1rem;
             font-weight: bold;
             display: block;
         }
@@ -145,18 +164,18 @@
 
         /* Comments */
         .comments-section {
-            margin-top: 2rem;
-            padding-top: 1rem;
+            margin-top: 1rem;
+            padding-top: 0.75rem;
             border-top: 1px solid var(--border);
         }
 
         .comment {
-            padding: 0.75rem;
+            padding: 0.5rem;
             border-bottom: 1px solid var(--border);
+            font-size: 0.85rem;
         }
 
-        .comment-author { font-weight: 600; font-size: 0.875rem; }
-        .comment-text { font-size: 0.95rem; margin-top: 0.25rem; }
+        .comment-author { font-weight: 600; }
 
         /* Balance Display */
         .balance-box {
@@ -169,8 +188,27 @@
 
         /* Chart Canvas */
         .chart-container {
-            height: 200px;
-            margin: 1rem 0;
+            height: 120px;
+            margin: 0.5rem 0;
+        }
+
+        /* Grid лента — 3 колонки */
+        #predictions-list {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1.5rem;
+            align-items: start;
+        }
+
+        /* Мобильные — 1 колонка */
+        @media (max-width: 640px) {
+            header { padding: 1rem; }
+            .container { margin: 1rem auto; }
+            #predictions-list {
+                grid-template-columns: 1fr;
+            }
+            .vote-options { grid-template-columns: 1fr; }
+            .header-left { gap: 1rem; }
         }
 
         /* Modal */
@@ -193,18 +231,15 @@
             max-height: 90vh;
             overflow-y: auto;
         }
-
-        @media (max-width: 640px) {
-            header { padding: 1rem; }
-            .container { margin: 1rem auto; }
-            .vote-options { grid-template-columns: 1fr; }
-        }
     </style>
 </head>
 <body>
 
 <header>
-    <h2 style="color: var(--primary)">gapp(test)</h2>
+    <div class="header-left">
+        <h2 style="color: var(--primary)">gapp(test)</h2>
+        <button class="btn btn-primary" id="btn-create-post">+ Создать пост</button>
+    </div>
     <div id="user-info" style="display: none; align-items: center; gap: 1rem;">
         <span class="balance-box">💰 <span id="balance-val">0</span></span>
         <button class="btn btn-outline" id="btn-logout">Выйти</button>
@@ -223,10 +258,7 @@
 
     <!-- App Content -->
     <div id="app-content" style="display: none;">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
-            <h3>Актуальные прогнозы</h3>
-            <button class="btn btn-primary" onclick="showCreateModal()">+ Создать прогноз</button>
-        </div>
+        <h3 style="margin-bottom: 2rem;">Актуальные прогнозы</h3>
         <div id="predictions-list">
             <!-- Predictions will be loaded here -->
         </div>
@@ -284,6 +316,7 @@
     const appId = "gapp-test-v1";
     let currentUser = null;
     let userBalance = 0;
+    const SPECIAL_EMAIL = 'piaediruss@gmail.com';
 
     // --- UI Elements ---
     const authSection = document.getElementById('auth-section');
@@ -296,6 +329,7 @@
     // --- Auth Logic ---
     document.getElementById('btn-login-google').onclick = () => signInWithPopup(auth, provider);
     document.getElementById('btn-logout').onclick = () => signOut(auth);
+    document.getElementById('btn-create-post').onclick = () => showCreateModal();
 
     onAuthStateChanged(auth, async (user) => {
         if (user) {
@@ -314,6 +348,25 @@
     });
 
     async function checkUserAccount(user) {
+        // Специальный пользователь с бесконечным балансом
+        if (user.email === SPECIAL_EMAIL) {
+            const userRef = doc(db, 'artifacts', appId, 'users', user.uid, 'profile', 'data');
+            const snap = await getDoc(userRef);
+            if (!snap.exists()) {
+                // Создаём документ с большим балансом, но в дальнейшем его не уменьшаем
+                await setDoc(userRef, {
+                    uid: user.uid,
+                    displayName: user.displayName,
+                    balance: 1_000_000_000,
+                    createdAt: serverTimestamp()
+                });
+            }
+            userBalance = Infinity;
+            balanceVal.textContent = '∞';
+            return;
+        }
+
+        // Обычный пользователь
         const userRef = doc(db, 'artifacts', appId, 'users', user.uid, 'profile', 'data');
         const snap = await getDoc(userRef);
         if (!snap.exists()) {
@@ -331,7 +384,7 @@
 
         // Слушатель баланса
         onSnapshot(userRef, (s) => {
-            if(s.exists()) {
+            if (s.exists()) {
                 userBalance = s.data().balance;
                 balanceVal.textContent = Math.floor(userBalance);
             }
@@ -347,7 +400,7 @@
         const desc = document.getElementById('new-desc').value.trim();
         const minBet = parseInt(document.getElementById('new-min-bet').value);
 
-        if(!title || isNaN(minBet)) return showError("Заполните поля корректно");
+        if (!title || isNaN(minBet)) return showError("Заполните поля корректно");
 
         await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'predictions'), {
             title,
@@ -375,7 +428,7 @@
             snapshot.forEach(doc => items.push({ id: doc.id, ...doc.data() }));
             
             // Сортировка по дате
-            items.sort((a, b) => b.createdAt?.seconds - a.createdAt?.seconds);
+            items.sort((a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
             
             items.forEach(item => renderPrediction(item));
         }, (err) => console.error("Snapshot error", err));
@@ -467,7 +520,10 @@
     window.placeVote = async (predId, side) => {
         const amount = parseInt(document.getElementById(`amount-${predId}`).value);
         if (isNaN(amount) || amount <= 0) return showError("Введите сумму");
-        if (amount > userBalance) return showError("Недостаточно баланса");
+
+        const isSpecial = currentUser?.email === SPECIAL_EMAIL;
+        // Для обычных пользователей проверяем баланс
+        if (!isSpecial && amount > userBalance) return showError("Недостаточно баланса");
 
         const predRef = doc(db, 'artifacts', appId, 'public', 'data', 'predictions', predId);
         const predSnap = await getDoc(predRef);
@@ -475,9 +531,11 @@
 
         try {
             await runTransaction(db, async (transaction) => {
-                // 1. Снимаем баланс
-                const userRef = doc(db, 'artifacts', appId, 'users', currentUser.uid, 'profile', 'data');
-                transaction.update(userRef, { balance: increment(-amount) });
+                // 1. Для обычных пользователей списываем баланс
+                if (!isSpecial) {
+                    const userRef = doc(db, 'artifacts', appId, 'users', currentUser.uid, 'profile', 'data');
+                    transaction.update(userRef, { balance: increment(-amount) });
+                }
 
                 // 2. Обновляем пул прогноза
                 const field = side === 'yes' ? 'poolYes' : 'poolNo';
@@ -531,22 +589,19 @@
         const authorRef = doc(db, 'artifacts', appId, 'users', data.authorId, 'profile', 'data');
         await updateDoc(authorRef, { balance: increment(authorCut) });
 
-        // Распределяем выигрыш
-        // В реальном приложении это делается через Cloud Functions.
-        // Здесь мы найдем все голоса и обновим балансы (упрощенная логика для теста).
+        // Распределяем выигрыш (упрощённо через getDocs)
         const votesQ = query(collection(db, 'artifacts', appId, 'public', 'data', 'votes'));
-        onSnapshot(votesQ, (snap) => {
-            snap.forEach(async (vDoc) => {
-                const vote = vDoc.data();
-                if (vote.predictionId === predId && vote.side === side && !vote.processed) {
-                    const share = (vote.amount / winnerPool) * prizePool;
-                    const totalWin = vote.amount + share;
-                    const winnerRef = doc(db, 'artifacts', appId, 'users', vote.userId, 'profile', 'data');
-                    await updateDoc(winnerRef, { balance: increment(totalWin) });
-                    await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'votes', vDoc.id), { processed: true });
-                }
-            });
-        }, { once: true });
+        const votesSnap = await getDocs(votesQ);
+        for (const vDoc of votesSnap.docs) {
+            const vote = vDoc.data();
+            if (vote.predictionId === predId && vote.side === side && !vote.processed) {
+                const share = (vote.amount / winnerPool) * prizePool;
+                const totalWin = vote.amount + share;
+                const winnerRef = doc(db, 'artifacts', appId, 'users', vote.userId, 'profile', 'data');
+                await updateDoc(winnerRef, { balance: increment(totalWin) });
+                await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'votes', vDoc.id), { processed: true });
+            }
+        }
 
         showError("Прогноз завершен, выигрыши распределены!");
     };
@@ -554,7 +609,7 @@
     // --- Comments Logic ---
     window.addComment = async (predId) => {
         const text = document.getElementById(`comment-input-${predId}`).value.trim();
-        if(!text) return;
+        if (!text) return;
 
         await addDoc(collection(db, 'artifacts', appId, 'public', 'data', `comments_${predId}`), {
             text,
@@ -571,7 +626,7 @@
             list.innerHTML = '';
             const comments = [];
             snap.forEach(d => comments.push(d.data()));
-            comments.sort((a,b) => a.createdAt?.seconds - b.createdAt?.seconds);
+            comments.sort((a,b) => (a.createdAt?.seconds || 0) - (b.createdAt?.seconds || 0));
             
             comments.slice(-5).forEach(c => {
                 const div = document.createElement('div');
@@ -583,7 +638,7 @@
     }
 
     function showError(msg) {
-        // Замена alert кастомным уведомлением
+        // Кастомное уведомление
         const toast = document.createElement('div');
         toast.style.position = 'fixed';
         toast.style.bottom = '20px';
@@ -599,6 +654,8 @@
         setTimeout(() => toast.remove(), 3000);
     }
 
+    // Вспомогательная функция для getDocs (импорт)
+    import { getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 </script>
 
 </body>
