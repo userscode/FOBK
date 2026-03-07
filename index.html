@@ -3,422 +3,603 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Multi-Gmail Inbox</title>
+    <title>gapp(test) - Платформа прогнозов</title>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         :root {
-            --primary-color: #c04b37;
-            --bg-color: #f6f8fc;
-            --sidebar-width: 260px;
-            --border-color: #dadce0;
+            --primary: #6366f1;
+            --primary-dark: #4f46e5;
+            --bg: #f8fafc;
+            --card: #ffffff;
+            --text: #1e293b;
+            --text-light: #64748b;
+            --success: #22c55e;
+            --danger: #ef4444;
+            --border: #e2e8f0;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Inter', sans-serif;
         }
 
         body {
-            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-            margin: 0;
-            background-color: var(--bg-color);
-            color: #202124;
-            display: flex;
-            height: 100vh;
-            overflow: hidden;
+            background-color: var(--bg);
+            color: var(--text);
+            line-height: 1.5;
         }
 
-        /* Sidebar */
-        .sidebar {
-            width: var(--sidebar-width);
-            background: #fff;
-            border-right: 1px solid var(--border-color);
+        /* Layout */
+        header {
+            background: var(--card);
+            padding: 1rem 2rem;
             display: flex;
-            flex-direction: column;
-            padding: 16px;
-        }
-
-        .logo {
-            font-size: 22px;
-            font-weight: bold;
-            color: var(--primary-color);
-            margin-bottom: 20px;
-            display: flex;
+            justify-content: space-between;
             align-items: center;
-            gap: 10px;
+            border-bottom: 1px solid var(--border);
+            position: sticky;
+            top: 0;
+            z-index: 100;
         }
 
-        .user-profile {
-            display: flex;
+        .container {
+            max-width: 1000px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+        }
+
+        /* Auth UI */
+        #auth-section {
+            text-align: center;
+            padding: 4rem 1rem;
+        }
+
+        /* Buttons */
+        .btn {
+            padding: 0.6rem 1.2rem;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            font-weight: 500;
+            transition: opacity 0.2s;
+            display: inline-flex;
             align-items: center;
-            gap: 10px;
-            padding: 10px;
-            margin-bottom: 20px;
-            background: #f1f3f4;
+            gap: 0.5rem;
+        }
+
+        .btn-primary { background: var(--primary); color: white; }
+        .btn-success { background: var(--success); color: white; }
+        .btn-danger { background: var(--danger); color: white; }
+        .btn-outline { border: 1px solid var(--border); background: white; }
+        .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        /* Prediction Card */
+        .card {
+            background: var(--card);
             border-radius: 12px;
-            font-size: 13px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            border: 1px solid var(--border);
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
         }
 
-        .user-profile img {
-            width: 32px;
-            height: 32px;
-            border-radius: 50%;
-        }
-
-        .btn-google {
-            background: #fff;
-            color: #3c4043;
-            border: 1px solid var(--border-color);
-            padding: 10px;
-            border-radius: 8px;
-            font-weight: 500;
-            cursor: pointer;
-            margin-bottom: 20px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-        }
-
-        .btn-add {
-            background-color: #c2e7ff;
-            color: #001d35;
-            border: none;
-            padding: 15px 20px;
-            border-radius: 16px;
-            font-weight: 500;
-            cursor: pointer;
-            margin-bottom: 10px;
-            transition: box-shadow 0.2s;
-        }
-
-        .btn-add:hover {
-            box-shadow: 0 1px 3px 0 rgba(60,64,67,0.30), 0 4px 8px 3px rgba(60,64,67,0.15);
-        }
-
-        .account-list {
-            list-style: none;
-            padding: 0;
-            margin: 0;
-            overflow-y: auto;
-        }
-
-        .account-item {
-            padding: 10px;
-            border-radius: 20px;
-            margin-bottom: 5px;
-            cursor: pointer;
-            font-size: 14px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
-
-        .account-item:hover { background-color: #f1f3f4; }
-        .account-item.active { background-color: #e8f0fe; color: #1967d2; font-weight: bold; }
-
-        /* Main Content */
-        .main-content {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            background: #fff;
-            margin: 8px;
-            border-radius: 16px;
-            box-shadow: 0 1px 2px 0 rgba(60,64,67,0.3), 0 1px 3px 1px rgba(60,64,67,0.15);
-        }
-
-        .header {
-            padding: 15px 20px;
-            border-bottom: 1px solid var(--border-color);
+        .card-header {
             display: flex;
             justify-content: space-between;
-            align-items: center;
+            align-items: flex-start;
+            margin-bottom: 1rem;
         }
 
-        .search-bar {
-            background: #f1f3f4;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 8px;
-            width: 60%;
-            max-width: 600px;
+        .status-badge {
+            font-size: 0.75rem;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            text-transform: uppercase;
+            font-weight: bold;
         }
 
-        .inbox-list {
-            flex: 1;
-            overflow-y: auto;
-        }
+        .status-active { background: #dcfce7; color: #166534; }
+        .status-closed { background: #f1f5f9; color: #475569; }
 
-        .email-item {
+        /* Voting UI */
+        .vote-options {
             display: grid;
-            grid-template-columns: 200px 1fr 100px;
-            padding: 10px 20px;
-            border-bottom: 1px solid #f1f3f4;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin: 1rem 0;
+        }
+
+        .vote-btn {
+            padding: 1rem;
+            border: 2px solid var(--border);
+            border-radius: 12px;
+            text-align: center;
             cursor: pointer;
-            align-items: center;
-            font-size: 14px;
+            transition: all 0.2s;
         }
 
-        .email-item:hover {
-            box-shadow: inset 1px 0 0 #dadce0, inset -1px 0 0 #dadce0, 0 1px 2px 0 rgba(60,64,67,.3), 0 1px 3px 1px rgba(60,64,67,.15);
-            z-index: 1;
+        .vote-btn:hover { border-color: var(--primary); }
+        .vote-btn.selected { border-color: var(--primary); background: #f5f3ff; }
+
+        .vote-count {
+            font-size: 1.25rem;
+            font-weight: bold;
+            display: block;
         }
 
-        .email-sender { font-weight: bold; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .email-subject { color: #5f6368; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .email-account-tag { font-size: 10px; background: #e8eaed; padding: 2px 6px; border-radius: 4px; margin-right: 10px; color: #3c4043; }
-        .email-date { text-align: right; color: #5f6368; }
+        /* Forms */
+        .form-group { margin-bottom: 1rem; }
+        .form-group label { display: block; margin-bottom: 0.5rem; font-weight: 500; }
+        input, textarea, select {
+            width: 100%;
+            padding: 0.75rem;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            font-size: 1rem;
+        }
 
-        /* Modals */
-        .modal-overlay {
+        /* Comments */
+        .comments-section {
+            margin-top: 2rem;
+            padding-top: 1rem;
+            border-top: 1px solid var(--border);
+        }
+
+        .comment {
+            padding: 0.75rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .comment-author { font-weight: 600; font-size: 0.875rem; }
+        .comment-text { font-size: 0.95rem; margin-top: 0.25rem; }
+
+        /* Balance Display */
+        .balance-box {
+            background: #eff6ff;
+            color: #1d4ed8;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-weight: bold;
+        }
+
+        /* Chart Canvas */
+        .chart-container {
+            height: 200px;
+            margin: 1rem 0;
+        }
+
+        /* Modal */
+        #modal-overlay {
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0,0,0,0.5);
             display: none;
             justify-content: center;
             align-items: center;
-            z-index: 100;
+            z-index: 1000;
         }
 
         .modal {
-            background: white; padding: 25px; border-radius: 8px; width: 400px;
+            background: white;
+            padding: 2rem;
+            border-radius: 16px;
+            max-width: 500px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
         }
 
-        .modal input, .modal textarea { width: 100%; padding: 10px; margin: 10px 0; border: 1px solid #ccc; border-radius: 4px; }
-        .modal-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px; }
-        
-        .btn { padding: 8px 16px; border-radius: 4px; cursor: pointer; border: none; font-weight: 500; }
-        .btn-primary { background: var(--primary-color); color: white; }
-        .btn-secondary { background: #e8eaed; color: #3c4043; }
-
-        #loading {
-            position: fixed; top: 20px; right: 20px;
-            background: #323232; color: white; padding: 10px 20px; border-radius: 4px;
-            display: none; z-index: 1000;
+        @media (max-width: 640px) {
+            header { padding: 1rem; }
+            .container { margin: 1rem auto; }
+            .vote-options { grid-template-columns: 1fr; }
         }
     </style>
 </head>
 <body>
 
-    <div id="loading">Загрузка...</div>
+<header>
+    <h2 style="color: var(--primary)">gapp(test)</h2>
+    <div id="user-info" style="display: none; align-items: center; gap: 1rem;">
+        <span class="balance-box">💰 <span id="balance-val">0</span></span>
+        <button class="btn btn-outline" id="btn-logout">Выйти</button>
+    </div>
+</header>
 
-    <aside class="sidebar">
-        <div class="logo">
-            <svg width="24" height="24" viewBox="0 0 24 24"><path fill="currentColor" d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5l-8-5V6l8 5l8-5v2z"/></svg>
-            Multi-Gmail
-        </div>
-
-        <div id="authSection">
-            <!-- Кнопка входа или профиль -->
-            <button class="btn-google" id="loginBtn">
-                <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" width="18">
-                Войти через Google
-            </button>
-        </div>
-
-        <div id="appControls" style="display: none;">
-            <button class="btn-add" onclick="showModal('accountModal')">＋ Добавить аккаунт</button>
-            <button class="btn-add" style="background:#fce8e6" onclick="showModal('emailModal')">✉ Написать письмо</button>
-            
-            <div style="font-weight: bold; margin: 15px 0 10px; font-size: 11px; color: #5f6368; text-transform: uppercase;">Аккаунты</div>
-            <ul class="account-list" id="accountList"></ul>
-            <button class="btn" style="margin-top: auto; font-size: 12px; color: #c04b37;" id="logoutBtn">Выйти</button>
-        </div>
-    </aside>
-
-    <main class="main-content">
-        <header class="header">
-            <input type="text" class="search-bar" placeholder="Поиск в почте">
-            <div id="statusInfo">Войдите, чтобы увидеть сообщения</div>
-        </header>
-        <div class="inbox-list" id="emailList"></div>
-    </main>
-
-    <!-- Modals -->
-    <div class="modal-overlay" id="accountModal">
-        <div class="modal">
-            <h2>Добавить новый аккаунт</h2>
-            <input type="email" id="newAccountEmail" placeholder="example@gmail.com">
-            <div class="modal-actions">
-                <button class="btn btn-secondary" onclick="hideModal('accountModal')">Отмена</button>
-                <button class="btn btn-primary" onclick="addAccount()">Добавить</button>
-            </div>
-        </div>
+<div class="container" id="main-view">
+    <!-- Auth Section -->
+    <div id="auth-section">
+        <h1>Добро пожаловать в gapp(test)</h1>
+        <p style="color: var(--text-light); margin: 1rem 0 2rem;">Прогнозируйте события, голосуйте и выигрывайте.</p>
+        <button class="btn btn-primary" id="btn-login-google" style="padding: 1rem 2rem; font-size: 1.1rem;">
+            Войти через Google
+        </button>
     </div>
 
-    <div class="modal-overlay" id="emailModal">
-        <div class="modal">
-            <h2>Симуляция входящего письма</h2>
-            <select id="selectAccount" style="width: 100%; padding: 10px; margin-bottom: 10px;"></select>
-            <input type="text" id="emailSender" placeholder="От кого">
-            <input type="text" id="emailSubject" placeholder="Тема">
-            <textarea id="emailBody" rows="4" placeholder="Текст письма"></textarea>
-            <div class="modal-actions">
-                <button class="btn btn-secondary" onclick="hideModal('emailModal')">Отмена</button>
-                <button class="btn btn-primary" onclick="sendEmail()">Получить</button>
-            </div>
+    <!-- App Content -->
+    <div id="app-content" style="display: none;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+            <h3>Актуальные прогнозы</h3>
+            <button class="btn btn-primary" onclick="showCreateModal()">+ Создать прогноз</button>
+        </div>
+        <div id="predictions-list">
+            <!-- Predictions will be loaded here -->
         </div>
     </div>
+</div>
 
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, collection, addDoc, onSnapshot, query, doc, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+<!-- Create Prediction Modal -->
+<div id="modal-overlay">
+    <div class="modal">
+        <h3>Новый прогноз</h3>
+        <p style="font-size: 0.8rem; color: var(--text-light); margin-bottom: 1.5rem;">
+            Комиссия автора: 5% от проигрышного пула.
+        </p>
+        <div class="form-group">
+            <label>Событие</label>
+            <input type="text" id="new-title" placeholder="Например: Биткоин пробьет $100k в марте?">
+        </div>
+        <div class="form-group">
+            <label>Описание</label>
+            <textarea id="new-desc" rows="3" placeholder="Дополнительные детали..."></textarea>
+        </div>
+        <div class="form-group">
+            <label>Минимальная ставка</label>
+            <input type="number" id="new-min-bet" value="10" min="1">
+        </div>
+        <div style="display: flex; gap: 1rem; margin-top: 1rem;">
+            <button class="btn btn-primary" id="btn-save-prediction">Создать</button>
+            <button class="btn btn-outline" onclick="closeModal()">Отмена</button>
+        </div>
+    </div>
+</div>
 
-        const firebaseConfig = {
-            apiKey: "AIzaSyDb_xlpLYoVEkd1aObJjzvlS8-JPDjn72E",
-            authDomain: "generalapp-b4f45.firebaseapp.com",
-            databaseURL: "https://generalapp-b4f45-default-rtdb.firebaseio.com",
-            projectId: "generalapp-b4f45",
-            storageBucket: "generalapp-b4f45.firebasestorage.app",
-            messagingSenderId: "800461808673",
-            appId: "1:800461808673:web:ec6374f28c7a40ced7ef60",
-            measurementId: "G-JYL0G1J1GJ"
-        };
+<!-- Firebase SDKs -->
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+    import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+    import { getFirestore, doc, setDoc, getDoc, updateDoc, collection, query, onSnapshot, addDoc, serverTimestamp, increment, runTransaction } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        const db = getFirestore(app);
-        const provider = new GoogleAuthProvider();
-        const appId = "multi-gmail-app";
+    const firebaseConfig = {
+        apiKey: "AIzaSyDb_xlpLYoVEkd1aObJjzvlS8-JPDjn72E",
+        authDomain: "generalapp-b4f45.firebaseapp.com",
+        databaseURL: "https://generalapp-b4f45-default-rtdb.firebaseio.com",
+        projectId: "generalapp-b4f45",
+        storageBucket: "generalapp-b4f45.firebasestorage.app",
+        messagingSenderId: "800461808673",
+        appId: "1:800461808673:web:ec6374f28c7a40ced7ef60",
+        measurementId: "G-JYL0G1J1GJ"
+    };
 
-        let currentUser = null;
-        let accounts = [];
-        let emails = [];
-        let unsubscribes = [];
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+    const provider = new GoogleAuthProvider();
 
-        // Auth Logic
-        document.getElementById('loginBtn').onclick = async () => {
-            try {
-                await signInWithPopup(auth, provider);
-            } catch (error) {
-                console.error("Auth error:", error);
-            }
-        };
+    const appId = "gapp-test-v1";
+    let currentUser = null;
+    let userBalance = 0;
 
-        document.getElementById('logoutBtn').onclick = () => signOut(auth);
+    // --- UI Elements ---
+    const authSection = document.getElementById('auth-section');
+    const appContent = document.getElementById('app-content');
+    const userInfo = document.getElementById('user-info');
+    const balanceVal = document.getElementById('balance-val');
+    const predictionsList = document.getElementById('predictions-list');
+    const modalOverlay = document.getElementById('modal-overlay');
 
-        onAuthStateChanged(auth, (user) => {
+    // --- Auth Logic ---
+    document.getElementById('btn-login-google').onclick = () => signInWithPopup(auth, provider);
+    document.getElementById('btn-logout').onclick = () => signOut(auth);
+
+    onAuthStateChanged(auth, async (user) => {
+        if (user) {
             currentUser = user;
-            const authSection = document.getElementById('authSection');
-            const appControls = document.getElementById('appControls');
-            
-            unsubscribes.forEach(unsub => unsub());
-            unsubscribes = [];
+            authSection.style.display = 'none';
+            appContent.style.display = 'block';
+            userInfo.style.display = 'flex';
+            await checkUserAccount(user);
+            initPredictionsListener();
+        } else {
+            currentUser = null;
+            authSection.style.display = 'block';
+            appContent.style.display = 'none';
+            userInfo.style.display = 'none';
+        }
+    });
 
-            if (user) {
-                authSection.innerHTML = `
-                    <div class="user-profile">
-                        <img src="${user.photoURL || 'https://via.placeholder.com/32'}" alt="Avatar">
-                        <div style="overflow: hidden; text-overflow: ellipsis;">
-                            <b>${user.displayName}</b><br>
-                            <small>${user.email}</small>
-                        </div>
-                    </div>
-                `;
-                appControls.style.display = 'flex';
-                appControls.style.flexDirection = 'column';
-                setupSubscriptions();
-            } else {
-                authSection.innerHTML = `
-                    <button class="btn-google" id="loginBtn">
-                        <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" width="18">
-                        Войти через Google
-                    </button>
-                `;
-                document.getElementById('loginBtn').onclick = () => signInWithPopup(auth, provider);
-                appControls.style.display = 'none';
-                document.getElementById('emailList').innerHTML = '<div style="padding: 40px; text-align: center;">Пожалуйста, войдите в аккаунт</div>';
-                document.getElementById('statusInfo').innerText = 'Войдите, чтобы продолжить';
-                document.getElementById('accountList').innerHTML = '';
+    async function checkUserAccount(user) {
+        const userRef = doc(db, 'artifacts', appId, 'users', user.uid, 'profile', 'data');
+        const snap = await getDoc(userRef);
+        if (!snap.exists()) {
+            await setDoc(userRef, {
+                uid: user.uid,
+                displayName: user.displayName,
+                balance: 50, // Начальный баланс
+                createdAt: serverTimestamp()
+            });
+            userBalance = 50;
+        } else {
+            userBalance = snap.data().balance;
+        }
+        balanceVal.textContent = Math.floor(userBalance);
+
+        // Слушатель баланса
+        onSnapshot(userRef, (s) => {
+            if(s.exists()) {
+                userBalance = s.data().balance;
+                balanceVal.textContent = Math.floor(userBalance);
             }
         });
+    }
 
-        function setupSubscriptions() {
-            if (!currentUser) return;
-            showLoading(true);
+    // --- Prediction Logic ---
+    window.showCreateModal = () => modalOverlay.style.display = 'flex';
+    window.closeModal = () => modalOverlay.style.display = 'none';
 
-            const accPath = collection(db, 'artifacts', appId, 'users', currentUser.uid, 'accounts');
-            const emailPath = collection(db, 'artifacts', appId, 'users', currentUser.uid, 'emails');
+    document.getElementById('btn-save-prediction').onclick = async () => {
+        const title = document.getElementById('new-title').value.trim();
+        const desc = document.getElementById('new-desc').value.trim();
+        const minBet = parseInt(document.getElementById('new-min-bet').value);
 
-            const unsubAcc = onSnapshot(accPath, (snap) => {
-                accounts = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-                renderAccounts();
-                updateAccountSelect();
-                showLoading(false);
+        if(!title || isNaN(minBet)) return showError("Заполните поля корректно");
+
+        await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'predictions'), {
+            title,
+            description: desc,
+            minBet,
+            authorId: currentUser.uid,
+            authorName: currentUser.displayName,
+            status: 'active',
+            poolYes: 0,
+            poolNo: 0,
+            votesCount: 0,
+            createdAt: serverTimestamp()
+        });
+
+        closeModal();
+        document.getElementById('new-title').value = '';
+        document.getElementById('new-desc').value = '';
+    };
+
+    function initPredictionsListener() {
+        const q = query(collection(db, 'artifacts', appId, 'public', 'data', 'predictions'));
+        onSnapshot(q, (snapshot) => {
+            predictionsList.innerHTML = '';
+            const items = [];
+            snapshot.forEach(doc => items.push({ id: doc.id, ...doc.data() }));
+            
+            // Сортировка по дате
+            items.sort((a, b) => b.createdAt?.seconds - a.createdAt?.seconds);
+            
+            items.forEach(item => renderPrediction(item));
+        }, (err) => console.error("Snapshot error", err));
+    }
+
+    function renderPrediction(item) {
+        const card = document.createElement('div');
+        card.className = 'card';
+        const isActive = item.status === 'active';
+        const isAuthor = item.authorId === currentUser.uid;
+        
+        const totalPool = item.poolYes + item.poolNo;
+        const yesPercent = totalPool > 0 ? (item.poolYes / totalPool * 100).toFixed(0) : 50;
+        const noPercent = totalPool > 0 ? (item.poolNo / totalPool * 100).toFixed(0) : 50;
+
+        card.innerHTML = `
+            <div class="card-header">
+                <div>
+                    <span class="status-badge ${isActive ? 'status-active' : 'status-closed'}">
+                        ${isActive ? 'Идет голосование' : 'Завершено'}
+                    </span>
+                    <h2 style="margin-top: 0.5rem">${item.title}</h2>
+                    <p style="color: var(--text-light); font-size: 0.875rem">Автор: ${item.authorName} | Мин. ставка: ${item.minBet}</p>
+                </div>
+                ${isAuthor && isActive ? `<button class="btn btn-danger btn-sm" onclick="resolvePrediction('${item.id}')">Завершить</button>` : ''}
+            </div>
+            
+            <p>${item.description}</p>
+
+            <div class="chart-container">
+                <canvas id="chart-${item.id}"></canvas>
+            </div>
+
+            <div class="vote-options">
+                <div class="vote-btn" id="vote-yes-${item.id}">
+                    <span class="vote-count" style="color: var(--success)">${item.poolYes}</span>
+                    <span style="font-size: 0.8rem">ЗА (${yesPercent}%)</span>
+                </div>
+                <div class="vote-btn" id="vote-no-${item.id}">
+                    <span class="vote-count" style="color: var(--danger)">${item.poolNo}</span>
+                    <span style="font-size: 0.8rem">ПРОТИВ (${noPercent}%)</span>
+                </div>
+            </div>
+
+            ${isActive ? `
+                <div style="display: flex; gap: 0.5rem; margin-top: 1rem;">
+                    <input type="number" id="amount-${item.id}" placeholder="Сумма..." min="${item.minBet}" style="flex: 1">
+                    <button class="btn btn-success" onclick="placeVote('${item.id}', 'yes')">Да</button>
+                    <button class="btn btn-danger" onclick="placeVote('${item.id}', 'no')">Нет</button>
+                </div>
+            ` : `<p style="text-align: center; font-weight: bold; color: var(--primary)">Результат: ${item.winner === 'yes' ? 'ДА ✅' : 'НЕТ ❌'}</p>`}
+
+            <div class="comments-section">
+                <div id="comments-list-${item.id}"></div>
+                <div style="display: flex; gap: 0.5rem; margin-top: 1rem;">
+                    <input type="text" id="comment-input-${item.id}" placeholder="Обсудить...">
+                    <button class="btn btn-outline" onclick="addComment('${item.id}')">Отправить</button>
+                </div>
+            </div>
+        `;
+
+        predictionsList.appendChild(card);
+        renderChart(item);
+        loadComments(item.id);
+    }
+
+    function renderChart(item) {
+        const ctx = document.getElementById(`chart-${item.id}`).getContext('2d');
+        new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Да', 'Нет'],
+                datasets: [{
+                    data: [item.poolYes || 1, item.poolNo || 1],
+                    backgroundColor: ['#22c55e', '#ef4444'],
+                    borderWidth: 0
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                cutout: '70%'
+            }
+        });
+    }
+
+    // --- Voting Logic ---
+    window.placeVote = async (predId, side) => {
+        const amount = parseInt(document.getElementById(`amount-${predId}`).value);
+        if (isNaN(amount) || amount <= 0) return showError("Введите сумму");
+        if (amount > userBalance) return showError("Недостаточно баланса");
+
+        const predRef = doc(db, 'artifacts', appId, 'public', 'data', 'predictions', predId);
+        const predSnap = await getDoc(predRef);
+        if (amount < predSnap.data().minBet) return showError(`Минимальная ставка ${predSnap.data().minBet}`);
+
+        try {
+            await runTransaction(db, async (transaction) => {
+                // 1. Снимаем баланс
+                const userRef = doc(db, 'artifacts', appId, 'users', currentUser.uid, 'profile', 'data');
+                transaction.update(userRef, { balance: increment(-amount) });
+
+                // 2. Обновляем пул прогноза
+                const field = side === 'yes' ? 'poolYes' : 'poolNo';
+                transaction.update(predRef, { 
+                    [field]: increment(amount),
+                    votesCount: increment(1)
+                });
+
+                // 3. Сохраняем голос в лог
+                const voteRef = doc(collection(db, 'artifacts', appId, 'public', 'data', 'votes'));
+                transaction.set(voteRef, {
+                    predictionId: predId,
+                    userId: currentUser.uid,
+                    amount,
+                    side,
+                    timestamp: serverTimestamp()
+                });
             });
+            showError("Ставка принята!");
+        } catch (e) {
+            console.error(e);
+            showError("Ошибка транзакции");
+        }
+    };
 
-            const unsubEmail = onSnapshot(emailPath, (snap) => {
-                emails = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-                emails.sort((a, b) => b.timestamp - a.timestamp);
-                renderEmails();
-            });
+    // --- Resolve Logic ---
+    window.resolvePrediction = async (predId) => {
+        const side = prompt("Какой результат правильный? (введите: yes или no)").toLowerCase();
+        if (side !== 'yes' && side !== 'no') return showError("Некорректный ввод");
 
-            unsubscribes.push(unsubAcc, unsubEmail);
+        const predRef = doc(db, 'artifacts', appId, 'public', 'data', 'predictions', predId);
+        const predSnap = await getDoc(predRef);
+        const data = predSnap.data();
+
+        const winnerPool = side === 'yes' ? data.poolYes : data.poolNo;
+        const loserPool = side === 'yes' ? data.poolNo : data.poolYes;
+
+        if (winnerPool === 0 && loserPool === 0) {
+            await updateDoc(predRef, { status: 'closed', winner: side });
+            return;
         }
 
-        // --- Logic Functions ---
+        // Выплаты
+        const authorCut = loserPool * 0.05; // 5% автору
+        const prizePool = loserPool - authorCut;
 
-        window.addAccount = async () => {
-            const email = document.getElementById('newAccountEmail').value.trim();
-            if (!email || !currentUser) return;
-            await addDoc(collection(db, 'artifacts', appId, 'users', currentUser.uid, 'accounts'), {
-                email, createdAt: Date.now()
+        // Обновляем прогноз
+        await updateDoc(predRef, { status: 'closed', winner: side });
+
+        // Начисляем автору
+        const authorRef = doc(db, 'artifacts', appId, 'users', data.authorId, 'profile', 'data');
+        await updateDoc(authorRef, { balance: increment(authorCut) });
+
+        // Распределяем выигрыш
+        // В реальном приложении это делается через Cloud Functions.
+        // Здесь мы найдем все голоса и обновим балансы (упрощенная логика для теста).
+        const votesQ = query(collection(db, 'artifacts', appId, 'public', 'data', 'votes'));
+        onSnapshot(votesQ, (snap) => {
+            snap.forEach(async (vDoc) => {
+                const vote = vDoc.data();
+                if (vote.predictionId === predId && vote.side === side && !vote.processed) {
+                    const share = (vote.amount / winnerPool) * prizePool;
+                    const totalWin = vote.amount + share;
+                    const winnerRef = doc(db, 'artifacts', appId, 'users', vote.userId, 'profile', 'data');
+                    await updateDoc(winnerRef, { balance: increment(totalWin) });
+                    await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'votes', vDoc.id), { processed: true });
+                }
             });
-            hideModal('accountModal');
-            document.getElementById('newAccountEmail').value = '';
-        };
+        }, { once: true });
 
-        window.sendEmail = async () => {
-            const to = document.getElementById('selectAccount').value;
-            const from = document.getElementById('emailSender').value.trim();
-            const sub = document.getElementById('emailSubject').value.trim();
-            const body = document.getElementById('emailBody').value.trim();
-            if (!to || !from || !currentUser) return;
-            await addDoc(collection(db, 'artifacts', appId, 'users', currentUser.uid, 'emails'), {
-                toAccount: to, sender: from, subject: sub, body: body, timestamp: Date.now()
-            });
-            hideModal('emailModal');
-        };
+        showError("Прогноз завершен, выигрыши распределены!");
+    };
 
-        function renderAccounts() {
-            const list = document.getElementById('accountList');
-            list.innerHTML = `<li class="account-item active" onclick="filterEmails('all')"><span>Все ящики</span><span>${emails.length}</span></li>`;
-            accounts.forEach(acc => {
-                const count = emails.filter(e => e.toAccount === acc.email).length;
-                const li = document.createElement('li');
-                li.className = 'account-item';
-                li.innerHTML = `<span>${acc.email.split('@')[0]}</span><span>${count}</span>`;
-                li.onclick = (e) => {
-                    document.querySelectorAll('.account-item').forEach(el => el.classList.remove('active'));
-                    li.classList.add('active');
-                    renderEmails(acc.email);
-                };
-                list.appendChild(li);
-            });
-        }
+    // --- Comments Logic ---
+    window.addComment = async (predId) => {
+        const text = document.getElementById(`comment-input-${predId}`).value.trim();
+        if(!text) return;
 
-        function renderEmails(filter = 'all') {
-            const list = document.getElementById('emailList');
-            const filtered = filter === 'all' ? emails : emails.filter(e => e.toAccount === filter);
-            document.getElementById('statusInfo').innerText = `Сообщений: ${filtered.length}`;
-            list.innerHTML = filtered.length ? '' : '<div style="padding:40px; text-align:center; color:#5f6368;">Пусто</div>';
-            filtered.forEach(m => {
+        await addDoc(collection(db, 'artifacts', appId, 'public', 'data', `comments_${predId}`), {
+            text,
+            authorName: currentUser.displayName,
+            createdAt: serverTimestamp()
+        });
+        document.getElementById(`comment-input-${predId}`).value = '';
+    };
+
+    function loadComments(predId) {
+        const q = query(collection(db, 'artifacts', appId, 'public', 'data', `comments_${predId}`));
+        onSnapshot(q, (snap) => {
+            const list = document.getElementById(`comments-list-${predId}`);
+            list.innerHTML = '';
+            const comments = [];
+            snap.forEach(d => comments.push(d.data()));
+            comments.sort((a,b) => a.createdAt?.seconds - b.createdAt?.seconds);
+            
+            comments.slice(-5).forEach(c => {
                 const div = document.createElement('div');
-                div.className = 'email-item';
-                div.innerHTML = `
-                    <div class="email-sender">${m.sender}</div>
-                    <div class="email-subject"><span class="email-account-tag">${m.toAccount}</span>${m.subject}</div>
-                    <div class="email-date">${new Date(m.timestamp).toLocaleDateString()}</div>
-                `;
+                div.className = 'comment';
+                div.innerHTML = `<span class="comment-author">${c.authorName}:</span> <span class="comment-text">${c.text}</span>`;
                 list.appendChild(div);
             });
-        }
+        });
+    }
 
-        function updateAccountSelect() {
-            const sel = document.getElementById('selectAccount');
-            sel.innerHTML = accounts.map(a => `<option value="${a.email}">${a.email}</option>`).join('');
-        }
+    function showError(msg) {
+        // Замена alert кастомным уведомлением
+        const toast = document.createElement('div');
+        toast.style.position = 'fixed';
+        toast.style.bottom = '20px';
+        toast.style.left = '50%';
+        toast.style.transform = 'translateX(-50%)';
+        toast.style.background = '#333';
+        toast.style.color = 'white';
+        toast.style.padding = '10px 20px';
+        toast.style.borderRadius = '5px';
+        toast.style.zIndex = '10000';
+        toast.textContent = msg;
+        document.body.appendChild(toast);
+        setTimeout(() => toast.remove(), 3000);
+    }
 
-        window.showModal = (id) => document.getElementById(id).style.display = 'flex';
-        window.hideModal = (id) => document.getElementById(id).style.display = 'none';
-        function showLoading(s) { document.getElementById('loading').style.display = s ? 'block' : 'none'; }
+</script>
 
-    </script>
 </body>
 </html>
