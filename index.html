@@ -3,314 +3,332 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GApp - Поиск</title>
+    <title>GApp - Твой Интернет</title>
     <style>
         :root {
-            --google-blue: #4285f4;
-            --google-red: #ea4335;
-            --google-yellow: #fbbc05;
-            --google-green: #34a853;
-            --gray-100: #f8f9fa;
-            --gray-200: #e8eaed;
-            --text-main: #202124;
-            --text-light: #70757a;
-            --shadow: 0 1px 6px rgba(32, 33, 36, 0.28);
+            --accent-color: #00f2ff;
+            --bg-gradient: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+            --glass-bg: rgba(255, 255, 255, 0.05);
+            --glass-border: rgba(255, 255, 255, 0.1);
+            --text-color: #e0e0e0;
+            --text-muted: #a0a0a0;
         }
 
         body {
-            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
             margin: 0;
             padding: 0;
-            color: var(--text-main);
-            background-color: #fff;
+            color: var(--text-color);
+            background: var(--bg-gradient);
+            background-attachment: fixed;
+            min-height: 100vh;
+            overflow-x: hidden;
         }
 
-        /* Header / Auth Section */
+        /* Навигация */
         header {
             display: flex;
-            justify-content: flex-end;
+            justify-content: space-between;
             align-items: center;
-            padding: 15px 30px;
+            padding: 20px 5%;
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--glass-border);
+        }
+
+        .brand {
+            font-size: 24px;
+            font-weight: 800;
+            letter-spacing: 2px;
+            color: var(--accent-color);
+            text-transform: uppercase;
+            text-shadow: 0 0 10px rgba(0, 242, 255, 0.5);
+        }
+
+        .auth-controls {
+            display: flex;
             gap: 15px;
+            align-items: center;
         }
 
         .btn {
-            padding: 8px 24px;
-            border-radius: 4px;
-            border: 1px solid transparent;
+            padding: 10px 20px;
+            border-radius: 12px;
+            border: none;
             cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             font-size: 14px;
-            font-weight: 500;
-            transition: background 0.2s;
         }
 
-        .btn-primary {
-            background-color: var(--google-blue);
-            color: white;
+        .btn-glow {
+            background: var(--accent-color);
+            color: #000;
+            box-shadow: 0 0 15px rgba(0, 242, 255, 0.3);
         }
 
-        .btn-primary:hover {
-            background-color: #3b78e7;
-            box-shadow: 0 1px 2px rgba(66, 133, 244, 0.3);
+        .btn-glow:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(0, 242, 255, 0.5);
         }
 
-        .btn-outline {
-            background: white;
-            border-color: var(--gray-200);
-            color: var(--text-main);
+        .btn-glass {
+            background: var(--glass-bg);
+            color: #fff;
+            border: 1px solid var(--glass-border);
+            backdrop-filter: blur(5px);
         }
 
-        .user-info {
+        .btn-glass:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        /* Главная секция */
+        .hero {
+            text-align: center;
+            padding: 100px 20px 40px;
+        }
+
+        .hero h1 {
+            font-size: clamp(40px, 8vw, 80px);
+            margin-bottom: 30px;
+            background: linear-gradient(to right, #fff, var(--accent-color));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .search-container {
+            max-width: 700px;
+            margin: 0 auto;
+            position: relative;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 20px 30px;
+            padding-left: 60px;
+            border-radius: 20px;
+            border: 1px solid var(--glass-border);
+            background: var(--glass-bg);
+            color: #fff;
+            font-size: 18px;
+            outline: none;
+            backdrop-filter: blur(15px);
+            box-sizing: border-box;
+            transition: border-color 0.3s;
+        }
+
+        .search-input:focus {
+            border-color: var(--accent-color);
+            box-shadow: 0 0 20px rgba(0, 242, 255, 0.1);
+        }
+
+        .search-icon-float {
+            position: absolute;
+            left: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 20px;
+            opacity: 0.5;
+        }
+
+        /* Результаты */
+        .results-grid {
+            max-width: 900px;
+            margin: 40px auto;
+            padding: 0 20px;
+            display: grid;
+            gap: 20px;
+        }
+
+        .site-card {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            padding: 25px;
+            backdrop-filter: blur(10px);
+            transition: transform 0.3s;
+            text-align: left;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .site-card:hover {
+            transform: scale(1.02);
+            border-color: rgba(0, 242, 255, 0.3);
+        }
+
+        .card-header {
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 15px;
+            margin-bottom: 12px;
         }
 
-        .avatar {
-            width: 32px;
-            height: 32px;
-            border-radius: 50%;
-            background: #ccc;
+        .card-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            background: #fff;
+            padding: 5px;
+            flex-shrink: 0;
         }
 
-        /* Main Search Area */
-        .container {
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 20px;
-            text-align: center;
+        .card-info h3 {
+            margin: 0;
+            color: #fff;
+            font-size: 20px;
         }
 
-        .logo {
-            font-size: 80px;
-            font-weight: bold;
-            margin-top: 60px;
-            margin-bottom: 30px;
-            letter-spacing: -2px;
+        .card-info span {
+            font-size: 13px;
+            color: var(--accent-color);
+            opacity: 0.8;
         }
 
-        .logo span:nth-child(1) { color: var(--google-blue); }
-        .logo span:nth-child(2) { color: var(--google-red); }
-        .logo span:nth-child(3) { color: var(--google-yellow); }
-        .logo span:nth-child(4) { color: var(--google-blue); }
-        .logo span:nth-child(5) { color: var(--google-green); }
-        .logo span:nth-child(6) { color: var(--google-red); }
-
-        .search-box-container {
-            position: relative;
-            max-width: 584px;
-            margin: 0 auto 30px;
+        .card-desc {
+            font-size: 15px;
+            color: var(--text-muted);
+            line-height: 1.6;
         }
 
-        .search-box {
+        .card-link {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            z-index: 1;
+        }
+
+        /* Модалка */
+        .modal-wrap {
+            position: fixed;
+            top:0; left:0; width:100%; height:100%;
+            background: rgba(0,0,0,0.8);
+            backdrop-filter: blur(10px);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+        }
+
+        .modal-content {
+            background: #1a1a2e;
+            padding: 40px;
+            border-radius: 30px;
+            width: 90%;
+            max-width: 500px;
+            border: 1px solid var(--glass-border);
+            text-align: left;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 14px;
+            color: var(--text-muted);
+        }
+
+        .input-group input, .input-group textarea {
             width: 100%;
-            padding: 12px 20px;
-            padding-left: 45px;
-            font-size: 16px;
-            border: 1px solid var(--gray-200);
-            border-radius: 24px;
+            padding: 12px;
+            background: #0f0f1f;
+            border: 1px solid var(--glass-border);
+            border-radius: 10px;
+            color: #fff;
             outline: none;
             box-sizing: border-box;
         }
 
-        .search-box:hover, .search-box:focus {
-            box-shadow: var(--shadow);
-            border-color: transparent;
-        }
-
-        .search-icon {
-            position: absolute;
-            left: 15px;
-            top: 50%;
-            transform: translateY(-50%);
-            color: #9aa0a6;
-        }
-
-        /* Results Section */
-        .results {
-            text-align: left;
-            margin-top: 40px;
-            display: none;
-        }
-
-        .result-item {
-            margin-bottom: 30px;
-            max-width: 650px;
-        }
-
-        .result-header {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            margin-bottom: 4px;
-        }
-
-        .site-favicon {
-            width: 26px;
-            height: 26px;
-            border-radius: 50%;
-            background: var(--gray-100);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            overflow: hidden;
-            border: 1px solid var(--gray-200);
-        }
-
-        .site-favicon img {
-            width: 100%;
-            height: 100%;
-            object-fit: contain;
-        }
-
-        .result-link-display {
-            font-size: 14px;
-            color: var(--text-main);
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-        }
-
-        .result-title {
-            font-size: 20px;
-            color: #1a0dab;
-            text-decoration: none;
-            display: block;
-            margin-bottom: 4px;
-        }
-
-        .result-title:hover {
-            text-decoration: underline;
-        }
-
-        .result-snippet {
-            font-size: 14px;
-            color: #4d5156;
-            line-height: 1.58;
-        }
-
-        /* Modal for adding site */
-        .modal-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.5);
-            display: none;
-            justify-content: center;
-            align-items: center;
-            z-index: 1000;
-        }
-
-        .modal {
-            background: white;
-            padding: 30px;
-            border-radius: 8px;
-            width: 100%;
-            max-width: 450px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-        }
-
-        .modal h2 { margin-top: 0; }
-
-        .form-group {
-            margin-bottom: 15px;
-            text-align: left;
-        }
-
-        .form-group label {
-            display: block;
-            margin-bottom: 5px;
-            font-size: 14px;
-            font-weight: bold;
-        }
-
-        .form-group input, .form-group textarea {
-            width: 100%;
-            padding: 10px;
-            border: 1px solid var(--gray-200);
-            border-radius: 4px;
-            box-sizing: border-box;
-        }
-
-        .modal-actions {
-            display: flex;
-            justify-content: flex-end;
-            gap: 10px;
-            margin-top: 20px;
+        .input-group input:focus {
+            border-color: var(--accent-color);
         }
 
         .hidden { display: none !important; }
 
-        #loading-indicator {
-            margin: 20px 0;
-            color: var(--text-light);
+        .avatar {
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            border: 2px solid var(--accent-color);
+        }
+
+        /* Анимация загрузки */
+        .loader {
+            width: 30px;
+            height: 30px;
+            border: 3px solid var(--glass-border);
+            border-top: 3px solid var(--accent-color);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
         }
     </style>
 </head>
 <body>
 
     <header>
-        <div id="auth-section">
-            <button id="login-btn" class="btn btn-primary">Войти через Google</button>
-        </div>
-        <div id="user-section" class="user-info hidden">
-            <button id="add-site-btn" class="btn btn-outline">Добавить сайт</button>
-            <div class="user-details">
-                <img id="user-photo" class="avatar" src="" alt="">
+        <div class="brand">GAPP</div>
+        <div class="auth-controls">
+            <div id="logged-out-ui">
+                <button id="login-btn" class="btn btn-glow">Войти</button>
             </div>
-            <button id="logout-btn" class="btn btn-outline">Выйти</button>
+            <div id="logged-in-ui" class="hidden">
+                <button id="add-site-trigger" class="btn btn-glass">+ Добавить</button>
+                <img id="user-avatar" class="avatar" src="" alt="user">
+                <button id="logout-btn" class="btn btn-glass">Выход</button>
+            </div>
         </div>
     </header>
 
-    <div class="container" id="main-ui">
-        <div class="logo">
-            <span>G</span><span>a</span><span>p</span><span>p</span><span>l</span><span>e</span>
+    <main class="hero">
+        <h1>Твой Интернет</h1>
+        <div class="search-container">
+            <span class="search-icon-float">🔭</span>
+            <input type="text" id="main-search" class="search-input" placeholder="Название или URL сайта...">
         </div>
 
-        <div class="search-box-container">
-            <span class="search-icon">🔍</span>
-            <input type="text" id="search-input" class="search-box" placeholder="Поиск в GApp или введите URL">
+        <div id="loader" class="loader hidden"></div>
+
+        <div id="results" class="results-grid">
+            <!-- Сайты будут тут -->
         </div>
+    </main>
 
-        <div id="loading-indicator" class="hidden">Поиск...</div>
-
-        <div id="results-area" class="results">
-            <!-- Results will be injected here -->
-        </div>
-    </div>
-
-    <!-- Modal for adding site -->
-    <div id="modal" class="modal-overlay">
-        <div class="modal">
-            <h2>Добавить свой сайт</h2>
-            <div class="form-group">
-                <label>Заголовок сайта</label>
-                <input type="text" id="site-title" placeholder="Напр. Мой личный блог">
+    <!-- Modal -->
+    <div id="site-modal" class="modal-wrap">
+        <div class="modal-content">
+            <h2 style="margin-top: 0;">Новый ресурс</h2>
+            <div class="input-group">
+                <label>Название проекта</label>
+                <input type="text" id="f-title" placeholder="Крутой Сайт">
             </div>
-            <div class="form-group">
-                <label>URL ссылка</label>
-                <input type="url" id="site-url" placeholder="https://example.com">
+            <div class="input-group">
+                <label>Ссылка (URL)</label>
+                <input type="url" id="f-url" placeholder="https://example.com">
             </div>
-            <div class="form-group">
-                <label>Описание</label>
-                <textarea id="site-desc" rows="3" placeholder="Краткое описание вашего ресурса"></textarea>
+            <div class="input-group">
+                <label>Что это такое?</label>
+                <textarea id="f-desc" rows="3" placeholder="Краткое описание..."></textarea>
             </div>
-            <div class="modal-actions">
-                <button id="cancel-btn" class="btn btn-outline">Отмена</button>
-                <button id="save-btn" class="btn btn-primary">Опубликовать</button>
+            <div style="display: flex; gap: 10px; justify-content: flex-end;">
+                <button id="close-modal" class="btn btn-glass">Отмена</button>
+                <button id="confirm-save" class="btn btn-glow">Опубликовать</button>
             </div>
         </div>
     </div>
 
-    <!-- Firebase SDKs -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, collection, addDoc, getDocs, query, orderBy } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, getDocs, query, where } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // Firebase Configuration from user
         const firebaseConfig = {
             apiKey: "AIzaSyDb_xlpLYoVEkd1aObJjzvlS8-JPDjn72E",
             authDomain: "generalapp-b4f45.firebaseapp.com",
@@ -318,169 +336,132 @@
             projectId: "generalapp-b4f45",
             storageBucket: "generalapp-b4f45.firebasestorage.app",
             messagingSenderId: "800461808673",
-            appId: "1:800461808673:web:ec6374f28c7a40ced7ef60",
-            measurementId: "G-JYL0G1J1GJ"
+            appId: "1:800461808673:web:ec6374f28c7a40ced7ef60"
         };
 
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
         const provider = new GoogleAuthProvider();
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'gapp-search';
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'gapp-custom';
 
-        // DOM Elements
-        const loginBtn = document.getElementById('login-btn');
-        const logoutBtn = document.getElementById('logout-btn');
-        const authSection = document.getElementById('auth-section');
-        const userSection = document.getElementById('user-section');
-        const userPhoto = document.getElementById('user-photo');
-        const addSiteBtn = document.getElementById('add-site-btn');
-        const modal = document.getElementById('modal');
-        const cancelBtn = document.getElementById('cancel-btn');
-        const saveBtn = document.getElementById('save-btn');
-        const searchInput = document.getElementById('search-input');
-        const resultsArea = document.getElementById('results-area');
-        const loadingIndicator = document.getElementById('loading-indicator');
+        let user = null;
+        let sitesList = [];
 
-        let currentUser = null;
-        let allSites = [];
+        // UI Elements
+        const resultsEl = document.getElementById('results');
+        const searchInput = document.getElementById('main-search');
+        const loader = document.getElementById('loader');
 
-        // Auth Logic
-        loginBtn.onclick = async () => {
-            try {
-                await signInWithPopup(auth, provider);
-            } catch (error) {
-                console.error("Login failed", error);
-            }
-        };
+        // Auth
+        document.getElementById('login-btn').onclick = () => signInWithPopup(auth, provider);
+        document.getElementById('logout-btn').onclick = () => signOut(auth);
 
-        logoutBtn.onclick = () => signOut(auth);
-
-        onAuthStateChanged(auth, (user) => {
+        onAuthStateChanged(auth, (u) => {
+            user = u;
             if (user) {
-                currentUser = user;
-                authSection.classList.add('hidden');
-                userSection.classList.remove('hidden');
-                userPhoto.src = user.photoURL || '';
+                document.getElementById('logged-out-ui').classList.add('hidden');
+                document.getElementById('logged-in-ui').classList.remove('hidden');
+                document.getElementById('user-avatar').src = user.photoURL;
             } else {
-                currentUser = null;
-                authSection.classList.remove('hidden');
-                userSection.classList.add('hidden');
+                document.getElementById('logged-out-ui').classList.remove('hidden');
+                document.getElementById('logged-in-ui').classList.add('hidden');
             }
         });
 
-        // Modal Logic
-        addSiteBtn.onclick = () => modal.style.display = 'flex';
-        cancelBtn.onclick = () => modal.style.display = 'none';
+        // Modal Controls
+        const modal = document.getElementById('site-modal');
+        document.getElementById('add-site-trigger').onclick = () => modal.style.display = 'flex';
+        document.getElementById('close-modal').onclick = () => modal.style.display = 'none';
 
-        saveBtn.onclick = async () => {
-            const title = document.getElementById('site-title').value.trim();
-            const url = document.getElementById('site-url').value.trim();
-            const desc = document.getElementById('site-desc').value.trim();
-
-            if (!title || !url || !desc) {
-                alert("Пожалуйста, заполните все поля");
-                return;
-            }
-
-            if (!currentUser) return;
-
+        // Load Data
+        async function loadSites() {
+            loader.classList.remove('hidden');
             try {
-                saveBtn.disabled = true;
-                saveBtn.innerText = "Сохранение...";
-                
-                // Firestore path rule applied
                 const colRef = collection(db, 'artifacts', appId, 'public', 'data', 'sites');
-                await addDoc(colRef, {
-                    title,
-                    url,
-                    description: desc,
-                    ownerId: currentUser.uid,
-                    ownerName: currentUser.displayName,
-                    createdAt: new Date().toISOString()
-                });
-
-                modal.style.display = 'none';
-                document.getElementById('site-title').value = '';
-                document.getElementById('site-url').value = '';
-                document.getElementById('site-desc').value = '';
-                
-                await fetchSites(); // Refresh
-            } catch (error) {
-                console.error("Error saving site:", error);
-                alert("Ошибка при сохранении");
+                const snap = await getDocs(colRef);
+                sitesList = snap.docs.map(doc => ({id: doc.id, ...doc.data()}));
+                render(searchInput.value);
             } finally {
-                saveBtn.disabled = false;
-                saveBtn.innerText = "Опубликовать";
-            }
-        };
-
-        // Search and Fetch Logic
-        async function fetchSites() {
-            try {
-                const colRef = collection(db, 'artifacts', appId, 'public', 'data', 'sites');
-                const q = query(colRef); // Rule 2: Simple query, filter in JS
-                const snapshot = await getDocs(q);
-                allSites = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-            } catch (e) {
-                console.error("Fetch failed", e);
+                loader.classList.add('hidden');
             }
         }
 
-        function getFavicon(url) {
-            try {
-                const domain = new URL(url).hostname;
-                return `https://www.google.com/s2/favicons?sz=64&domain=${domain}`;
-            } catch (e) {
-                return 'https://via.placeholder.com/32';
-            }
-        }
-
-        function renderResults(queryStr) {
-            resultsArea.innerHTML = '';
-            const filtered = allSites.filter(site => 
-                site.title.toLowerCase().includes(queryStr.toLowerCase()) || 
-                site.description.toLowerCase().includes(queryStr.toLowerCase()) ||
-                site.url.toLowerCase().includes(queryStr.toLowerCase())
+        // Search logic (No verification needed for searching)
+        function render(queryStr = "") {
+            resultsEl.innerHTML = "";
+            const term = queryStr.toLowerCase().trim();
+            
+            // Фильтр по названию ИЛИ по ссылке
+            const filtered = sitesList.filter(s => 
+                s.title.toLowerCase().includes(term) || 
+                s.url.toLowerCase().includes(term)
             );
 
-            if (queryStr.length === 0) {
-                resultsArea.style.display = 'none';
-                return;
-            }
-
-            resultsArea.style.display = 'block';
-
             if (filtered.length === 0) {
-                resultsArea.innerHTML = `<p style="color:var(--text-light)">Ничего не найдено по запросу "${queryStr}"</p>`;
+                resultsEl.innerHTML = `<div style="text-align:center; opacity:0.5; grid-column: 1/-1;">Ничего не найдено</div>`;
                 return;
             }
 
             filtered.forEach(site => {
-                const item = document.createElement('div');
-                item.className = 'result-item';
-                item.innerHTML = `
-                    <div class="result-header">
-                        <div class="site-favicon">
-                            <img src="${getFavicon(site.url)}" onerror="this.src='https://www.google.com/s2/favicons?sz=64&domain=google.com'">
+                const domain = new URL(site.url).hostname;
+                const favicon = `https://www.google.com/s2/favicons?sz=64&domain=${domain}`;
+                
+                const card = document.createElement('div');
+                card.className = 'site-card';
+                card.innerHTML = `
+                    <a href="${site.url}" target="_blank" class="card-link"></a>
+                    <div class="card-header">
+                        <img class="card-icon" src="${favicon}" onerror="this.src='https://via.placeholder.com/40?text=?'">
+                        <div class="card-info">
+                            <h3>${site.title}</h3>
+                            <span>${domain}</span>
                         </div>
-                        <div class="result-link-display">${site.url}</div>
                     </div>
-                    <a href="${site.url}" target="_blank" class="result-title">${site.title}</a>
-                    <div class="result-snippet">${site.description}</div>
+                    <div class="card-desc">${site.description}</div>
                 `;
-                resultsArea.appendChild(item);
+                resultsEl.appendChild(card);
             });
         }
 
-        searchInput.oninput = (e) => {
-            renderResults(e.target.value);
+        // Save Logic
+        document.getElementById('confirm-save').onclick = async () => {
+            if (!user) return;
+            
+            const title = document.getElementById('f-title').value.trim();
+            const url = document.getElementById('f-url').value.trim();
+            const description = document.getElementById('f-desc').value.trim();
+
+            if (!title || !url || !description) {
+                alert("Заполни все поля!");
+                return;
+            }
+
+            // ПРОВЕРКА НА ДУБЛИКАТ
+            const exists = sitesList.some(s => s.url.toLowerCase() === url.toLowerCase());
+            if (exists) {
+                alert("Этот сайт уже есть в нашей базе!");
+                return;
+            }
+
+            try {
+                const colRef = collection(db, 'artifacts', appId, 'public', 'data', 'sites');
+                await addDoc(colRef, {
+                    title, url, description,
+                    uid: user.uid,
+                    ts: Date.now()
+                });
+                modal.style.display = 'none';
+                await loadSites();
+            } catch (e) {
+                alert("Ошибка сохранения");
+            }
         };
 
-        // Initial Load
-        window.onload = async () => {
-            await fetchSites();
-        };
+        searchInput.oninput = (e) => render(e.target.value);
+
+        // Bootstrap
+        loadSites();
 
     </script>
 </body>
