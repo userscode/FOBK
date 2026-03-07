@@ -3,217 +3,347 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ultimate System & Network Stress Test</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <title>Stream Chat Configurator</title>
     <style>
-        body {
+        :root {
+            --primary: #6441a5;
+            --secondary: #ff0000;
+            --bg: #1a1a1a;
+            --card: #2d2d2d;
+            --text: #ffffff;
+        }
+
+        body, html {
             margin: 0;
-            overflow: hidden;
-            background-color: #000;
-            font-family: 'Segoe UI', sans-serif;
-            color: #00ff00;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            height: 100%;
+            overflow-x: hidden;
         }
 
-        #ui-container {
-            position: absolute;
-            top: 20px;
-            left: 20px;
-            z-index: 100;
-            background: rgba(0, 0, 0, 0.95);
+        /* Оболочка конфигуратора */
+        .config-container {
+            max-width: 800px;
+            margin: 40px auto;
             padding: 20px;
-            border: 2px solid #ff00ea;
-            pointer-events: none;
-            backdrop-filter: blur(10px);
-            box-shadow: 0 0 30px rgba(255, 0, 234, 0.4);
+            background: var(--card);
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
         }
 
-        .stat-line {
-            margin-bottom: 8px;
-            font-size: 16px;
-            text-shadow: 1px 1px 2px #000;
+        h1 { text-align: center; color: #fff; margin-bottom: 30px; }
+
+        .form-group {
+            margin-bottom: 20px;
         }
 
-        .stat-value {
-            font-weight: bold;
-            color: #fff;
-            font-family: monospace;
-        }
-
-        #timer-msg {
-            color: #00eaff;
-            font-size: 14px;
-            margin-top: 10px;
-            text-transform: uppercase;
-        }
-
-        #next-boom {
-            font-size: 28px;
-            color: #ff00ea;
+        label {
             display: block;
-            margin-top: 5px;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #ccc;
         }
 
-        #network-status {
-            color: #ff3300;
-            font-size: 12px;
-            margin-top: 5px;
+        input[type="text"], 
+        input[type="number"], 
+        select {
+            width: 100%;
+            padding: 12px;
+            border-radius: 6px;
+            border: 1px solid #444;
+            background: #111;
+            color: #fff;
+            box-sizing: border-box;
         }
+
+        .row {
+            display: flex;
+            gap: 20px;
+        }
+
+        .row > div { flex: 1; }
+
+        button {
+            width: 100%;
+            padding: 15px;
+            border: none;
+            border-radius: 6px;
+            background: var(--primary);
+            color: white;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: opacity 0.2s;
+            margin-top: 10px;
+        }
+
+        button:hover { opacity: 0.9; }
+
+        #result-area {
+            margin-top: 30px;
+            padding: 20px;
+            background: #000;
+            border: 2px dashed var(--primary);
+            border-radius: 8px;
+            display: none;
+        }
+
+        .copy-box {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .url-display {
+            background: #222;
+            padding: 10px;
+            border-radius: 4px;
+            flex-grow: 1;
+            word-break: break-all;
+            font-family: monospace;
+            border: 1px solid #333;
+        }
+
+        /* Стили виджета чата (для OBS) */
+        #obs-widget {
+            display: none;
+            width: 100vw;
+            height: 100vh;
+            background: transparent;
+        }
+
+        iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+
+        .status-msg {
+            padding: 10px;
+            border-radius: 4px;
+            margin-bottom: 10px;
+            display: none;
+        }
+        .error { background: #600; display: block; }
+        .success { background: #060; display: block; }
     </style>
 </head>
 <body>
 
-    <div id="ui-container">
-        <div class="stat-line">FPS: <span id="fps-counter" class="stat-value">--</span></div>
-        <div class="stat-line">3D Объекты: <span id="obj-count" class="stat-value">64,000</span></div>
-        <div class="stat-line">Сетевой трафик: <span id="net-load" class="stat-value">MAX</span></div>
-        <div id="network-status">HTTP Requests: ACTIVE</div>
-        <div id="timer-msg">УМНОЖЕНИЕ x4 ЧЕРЕЗ: <span id="next-boom">10</span></div>
+    <!-- Интерфейс настройки -->
+    <div id="setup-ui" class="config-container">
+        <h1>Настройка чата для OBS</h1>
+        
+        <div id="status" class="status-msg"></div>
+
+        <div class="form-group">
+            <label>Ссылка на трансляцию (YouTube или Twitch)</label>
+            <input type="text" id="stream-url" placeholder="https://www.youtube.com/watch?v=... или https://twitch.tv/username">
+        </div>
+
+        <div class="row">
+            <div class="form-group">
+                <label>Размер шрифта (px)</label>
+                <input type="number" id="font-size" value="16">
+            </div>
+            <div class="form-group">
+                <label>Цвет текста</label>
+                <input type="text" id="text-color" value="#ffffff">
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="form-group">
+                <label>Прозрачность фона (0-1)</label>
+                <input type="number" id="bg-opacity" step="0.1" min="0" max="1" value="0.5">
+            </div>
+            <div class="form-group">
+                <label>Тема чата</label>
+                <select id="chat-theme">
+                    <option value="dark">Темная</option>
+                    <option value="light">Светлая</option>
+                </select>
+            </div>
+        </div>
+
+        <button id="generate-btn">Сохранить и получить ссылку</button>
+
+        <div id="result-area">
+            <label>Ваша ссылка для OBS (Browser Source):</label>
+            <div class="copy-box">
+                <div id="obs-url" class="url-display"></div>
+                <button style="width: auto; margin-top: 0;" onclick="copyUrl()">Копировать</button>
+            </div>
+            <p style="font-size: 12px; color: #888; margin-top: 10px;">
+                Скопируйте эту ссылку и вставьте её в OBS в источник "Браузер".
+            </p>
+        </div>
     </div>
 
-    <script>
-        let scene, camera, renderer;
-        let objects = [];
-        let memoryHolders = [];
-        let lastTime = performance.now();
-        let frames = 0;
-        let secondsToNextBoom = 10;
+    <!-- Интерфейс виджета -->
+    <div id="obs-widget">
+        <div id="chat-frame-container" style="width:100%; height:100%;"></div>
+    </div>
 
-        const textureLoader = new THREE.TextureLoader();
-        const texPaths = ['fone.gif', 'exp.gif'];
+    <!-- Firebase SDK -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
 
-        const objDisplay = document.getElementById('obj-count');
-        const fpsDisplay = document.getElementById('fps-counter');
-        const timerDisplay = document.getElementById('next-boom');
-
-        // 1. Нагрузка на интернет и сеть (HTTP Requests Stress)
-        function startNetworkStress() {
-            // Бесконечные запросы к случайным ресурсам (используем кэш-брейкеры)
-            setInterval(() => {
-                for(let i = 0; i < 10; i++) {
-                    // Запрашиваем крупные библиотеки или саму страницу многократно
-                    fetch(`/?cache_bust=${Math.random()}`, { mode: 'no-cors' })
-                        .catch(() => {}); // Игнорируем ошибки, важен сам факт запроса
-                }
-            }, 50);
-        }
-
-        // 2. Нагрузка на CPU (Web Workers)
-        function startCPUStress() {
-            const workerCode = `
-                setInterval(() => {
-                    let x = 0;
-                    for(let i = 0; i < 8000000; i++) {
-                        x += Math.sin(Math.random()) * Math.cos(Math.random());
-                    }
-                }, 0);
-            `;
-            const blob = new Blob([workerCode], { type: 'application/javascript' });
-            const workerURL = URL.createObjectURL(blob);
-            for(let i = 0; i < (navigator.hardwareConcurrency || 8); i++) {
-                new Worker(workerURL);
-            }
-        }
-
-        function init() {
-            scene = new THREE.Scene();
-            camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 5000);
-            camera.position.z = 500;
-
-            renderer = new THREE.WebGLRenderer({ antialias: false, powerPreference: "high-performance" });
-            renderer.setSize(window.innerWidth, window.innerHeight);
-            renderer.setPixelRatio(1);
-            document.body.appendChild(renderer.domElement);
-
-            const light = new THREE.PointLight(0xffffff, 1.5, 2000);
-            light.position.set(100, 100, 100);
-            scene.add(light);
-            scene.add(new THREE.AmbientLight(0x222222));
-
-            startCPUStress();
-            startNetworkStress();
-            addObjects(64000);
-
-            // Таймер X4
-            setInterval(() => {
-                secondsToNextBoom--;
-                if (secondsToNextBoom <= 0) {
-                    const currentCount = objects.length;
-                    // Предохранитель, чтобы не вылетело слишком быстро на 1 млн объектов
-                    if (currentCount < 500000) {
-                        addObjects(currentCount * 3);
-                    }
-                    secondsToNextBoom = 10;
-                }
-                timerDisplay.textContent = secondsToNextBoom;
-            }, 1000);
-        }
-
-        function addObjects(countToAdd) {
-            const geometry = new THREE.BoxGeometry(2, 2, 2);
-
-            for (let i = 0; i < countToAdd; i++) {
-                const randomTex = texPaths[Math.floor(Math.random() * texPaths.length)];
-
-                const material = new THREE.MeshPhongMaterial({
-                    map: textureLoader.load(randomTex, undefined, undefined, () => {}),
-                    color: new THREE.Color(Math.random(), Math.random(), Math.random()),
-                    shininess: 100
-                });
-
-                const mesh = new THREE.Mesh(geometry, material);
-                mesh.position.set(
-                    (Math.random() - 0.5) * 1200,
-                    (Math.random() - 0.5) * 1200,
-                    (Math.random() - 0.5) * 1200
-                );
-
-                mesh.rotation.set(Math.random() * Math.PI, Math.random() * Math.PI, 0);
-
-                // Нагрузка на RAM через TypedArrays
-                try {
-                    mesh.userData.ramBlock = new Float32Array(1024);
-                    if (i % 50 === 0) memoryHolders.push(new Uint32Array(1024 * 100));
-                } catch(e) {}
-
-                scene.add(mesh);
-                objects.push(mesh);
-            }
-            objDisplay.textContent = objects.length.toLocaleString();
-        }
-
-        function animate() {
-            requestAnimationFrame(animate);
-
-            const time = performance.now() * 0.001;
-
-            // Тяжелый цикл обновления 3D
-            for (let i = 0; i < objects.length; i++) {
-                const obj = objects[i];
-                obj.rotation.x += 0.03;
-                obj.position.y += Math.sin(time + i) * 0.05;
-            }
-
-            renderer.render(scene, camera);
-
-            frames++;
-            const currentTime = performance.now();
-            if (currentTime >= lastTime + 1000) {
-                fpsDisplay.textContent = frames;
-                frames = 0;
-                lastTime = currentTime;
-            }
-        }
-
-        window.onload = () => {
-            init();
-            animate();
+        // Конфигурация Firebase
+        const firebaseConfig = {
+            apiKey: "AIzaSyDb_xlpLYoVEkd1aObJjzvlS8-JPDjn72E",
+            authDomain: "generalapp-b4f45.firebaseapp.com",
+            databaseURL: "https://generalapp-b4f45-default-rtdb.firebaseio.com",
+            projectId: "generalapp-b4f45",
+            storageBucket: "generalapp-b4f45.firebasestorage.app",
+            messagingSenderId: "800461808673",
+            appId: "1:800461808673:web:ec6374f28c7a40ced7ef60",
+            measurementId: "G-JYL0G1J1GJ"
         };
 
-        window.addEventListener('resize', () => {
-            camera.aspect = window.innerWidth / window.innerHeight;
-            camera.updateProjectionMatrix();
-            renderer.setSize(window.innerWidth, window.innerHeight);
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const auth = getAuth(app);
+        
+        // ВАЖНО: appId для путей Firestore
+        const appId = "stream-chat-v1";
+
+        let currentUser = null;
+
+        // Инициализация авторизации
+        const initAuth = async () => {
+            try {
+                // Пытаемся авторизоваться анонимно
+                const userCredential = await signInAnonymously(auth);
+                currentUser = userCredential.user;
+                console.log("Authenticated as:", currentUser.uid);
+                checkUrlParams();
+            } catch (error) {
+                console.error("Auth error:", error);
+                showStatus("Ошибка подключения к Firebase", "error");
+            }
+        };
+
+        initAuth();
+
+        // Проверка параметров URL
+        async function checkUrlParams() {
+            const params = new URLSearchParams(window.location.search);
+            const configId = params.get('config');
+
+            if (configId) {
+                document.getElementById('setup-ui').style.display = 'none';
+                document.getElementById('obs-widget').style.display = 'block';
+                loadChatConfig(configId);
+            }
+        }
+
+        // Загрузка настроек для виджета
+        async function loadChatConfig(id) {
+            try {
+                // ПУТЬ: artifacts / {appId} / public / data / {documentId} (4 сегмента)
+                const docRef = doc(db, 'artifacts', appId, 'public', id);
+                const docSnap = await getDoc(docRef);
+
+                if (docSnap.exists()) {
+                    const data = docSnap.data();
+                    renderChat(data);
+                } else {
+                    document.body.innerHTML = "<h1 style='color:white; text-align:center; padding-top: 50px;'>Конфигурация не найдена</h1>";
+                }
+            } catch (err) {
+                console.error(err);
+                document.body.innerHTML = "<h1 style='color:white; text-align:center; padding-top: 50px;'>Ошибка загрузки</h1>";
+            }
+        }
+
+        // Генерация iframe
+        function renderChat(config) {
+            const container = document.getElementById('chat-frame-container');
+            let chatUrl = "";
+            const streamUrl = config.streamUrl;
+
+            if (streamUrl.includes('youtube.com') || streamUrl.includes('youtu.be')) {
+                let videoId = "";
+                if (streamUrl.includes('v=')) {
+                    videoId = streamUrl.split('v=')[1].split('&')[0];
+                } else {
+                    videoId = streamUrl.split('/').pop();
+                }
+                chatUrl = `https://www.youtube.com/live_chat?v=${videoId}&embed_domain=${window.location.hostname}`;
+            } else if (streamUrl.includes('twitch.tv')) {
+                const channel = streamUrl.split('/').pop();
+                chatUrl = `https://www.twitch.tv/embed/${channel}/chat?parent=${window.location.hostname}&darkpopout`;
+            }
+
+            const iframe = document.createElement('iframe');
+            iframe.src = chatUrl;
+            iframe.style.opacity = config.opacity;
+            container.appendChild(iframe);
+            document.body.style.backgroundColor = 'transparent';
+        }
+
+        // Сохранение настроек
+        document.getElementById('generate-btn').addEventListener('click', async () => {
+            if (!currentUser) {
+                showStatus("Ожидание авторизации...", "error");
+                return;
+            }
+
+            const streamUrl = document.getElementById('stream-url').value.trim();
+            if (!streamUrl) {
+                showStatus("Введите ссылку на стрим", "error");
+                return;
+            }
+
+            const configData = {
+                streamUrl: streamUrl,
+                fontSize: document.getElementById('font-size').value,
+                textColor: document.getElementById('text-color').value,
+                opacity: document.getElementById('bg-opacity').value,
+                theme: document.getElementById('chat-theme').value,
+                createdAt: Date.now(),
+                userId: currentUser.uid
+            };
+
+            const configId = crypto.randomUUID();
+            try {
+                // ИСПРАВЛЕННЫЙ ПУТЬ: 4 сегмента
+                // artifacts / {appId} / public / {configId}
+                await setDoc(doc(db, 'artifacts', appId, 'public', configId), configData);
+                
+                const finalUrl = `${window.location.origin}${window.location.pathname}?config=${configId}`;
+                document.getElementById('obs-url').innerText = finalUrl;
+                document.getElementById('result-area').style.display = 'block';
+                showStatus("Настройки сохранены!", "success");
+            } catch (e) {
+                console.error(e);
+                showStatus("Ошибка сохранения: " + e.message, "error");
+            }
         });
+
+        function showStatus(msg, type) {
+            const el = document.getElementById('status');
+            el.innerText = msg;
+            el.className = 'status-msg ' + type;
+            el.style.display = 'block';
+            setTimeout(() => { el.style.display = 'none'; }, 5000);
+        }
+
+        window.copyUrl = function() {
+            const text = document.getElementById('obs-url').innerText;
+            const tempInput = document.createElement("input");
+            tempInput.value = text;
+            document.body.appendChild(tempInput);
+            tempInput.select();
+            document.execCommand("copy");
+            document.body.removeChild(tempInput);
+            alert("Ссылка скопирована!");
+        };
     </script>
 </body>
 </html>
