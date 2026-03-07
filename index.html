@@ -3,197 +3,314 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Stream Chat Configurator</title>
+    <title>GApp - Поиск</title>
     <style>
         :root {
-            --primary: #6441a5;
-            --secondary: #ff0000;
-            --bg: #1a1a1a;
-            --card: #2d2d2d;
-            --text: #ffffff;
+            --google-blue: #4285f4;
+            --google-red: #ea4335;
+            --google-yellow: #fbbc05;
+            --google-green: #34a853;
+            --gray-100: #f8f9fa;
+            --gray-200: #e8eaed;
+            --text-main: #202124;
+            --text-light: #70757a;
+            --shadow: 0 1px 6px rgba(32, 33, 36, 0.28);
         }
 
-        body, html {
+        body {
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
             margin: 0;
             padding: 0;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: var(--bg);
-            color: var(--text);
-            height: 100%;
-            overflow-x: hidden;
+            color: var(--text-main);
+            background-color: #fff;
         }
 
-        /* Оболочка конфигуратора */
-        .config-container {
+        /* Header / Auth Section */
+        header {
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            padding: 15px 30px;
+            gap: 15px;
+        }
+
+        .btn {
+            padding: 8px 24px;
+            border-radius: 4px;
+            border: 1px solid transparent;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: background 0.2s;
+        }
+
+        .btn-primary {
+            background-color: var(--google-blue);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background-color: #3b78e7;
+            box-shadow: 0 1px 2px rgba(66, 133, 244, 0.3);
+        }
+
+        .btn-outline {
+            background: white;
+            border-color: var(--gray-200);
+            color: var(--text-main);
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: #ccc;
+        }
+
+        /* Main Search Area */
+        .container {
             max-width: 800px;
-            margin: 40px auto;
+            margin: 0 auto;
             padding: 20px;
-            background: var(--card);
-            border-radius: 12px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            text-align: center;
         }
 
-        h1 { text-align: center; color: #fff; margin-bottom: 30px; }
-
-        .form-group {
-            margin-bottom: 20px;
-        }
-
-        label {
-            display: block;
-            margin-bottom: 8px;
+        .logo {
+            font-size: 80px;
             font-weight: bold;
-            color: #ccc;
+            margin-top: 60px;
+            margin-bottom: 30px;
+            letter-spacing: -2px;
         }
 
-        input[type="text"], 
-        input[type="number"], 
-        select {
+        .logo span:nth-child(1) { color: var(--google-blue); }
+        .logo span:nth-child(2) { color: var(--google-red); }
+        .logo span:nth-child(3) { color: var(--google-yellow); }
+        .logo span:nth-child(4) { color: var(--google-blue); }
+        .logo span:nth-child(5) { color: var(--google-green); }
+        .logo span:nth-child(6) { color: var(--google-red); }
+
+        .search-box-container {
+            position: relative;
+            max-width: 584px;
+            margin: 0 auto 30px;
+        }
+
+        .search-box {
             width: 100%;
-            padding: 12px;
-            border-radius: 6px;
-            border: 1px solid #444;
-            background: #111;
-            color: #fff;
+            padding: 12px 20px;
+            padding-left: 45px;
+            font-size: 16px;
+            border: 1px solid var(--gray-200);
+            border-radius: 24px;
+            outline: none;
             box-sizing: border-box;
         }
 
-        .row {
-            display: flex;
-            gap: 20px;
+        .search-box:hover, .search-box:focus {
+            box-shadow: var(--shadow);
+            border-color: transparent;
         }
 
-        .row > div { flex: 1; }
-
-        button {
-            width: 100%;
-            padding: 15px;
-            border: none;
-            border-radius: 6px;
-            background: var(--primary);
-            color: white;
-            font-size: 16px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: opacity 0.2s;
-            margin-top: 10px;
+        .search-icon {
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #9aa0a6;
         }
 
-        button:hover { opacity: 0.9; }
-
-        #result-area {
-            margin-top: 30px;
-            padding: 20px;
-            background: #000;
-            border: 2px dashed var(--primary);
-            border-radius: 8px;
+        /* Results Section */
+        .results {
+            text-align: left;
+            margin-top: 40px;
             display: none;
         }
 
-        .copy-box {
+        .result-item {
+            margin-bottom: 30px;
+            max-width: 650px;
+        }
+
+        .result-header {
             display: flex;
-            gap: 10px;
-            margin-top: 10px;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 4px;
         }
 
-        .url-display {
-            background: #222;
-            padding: 10px;
-            border-radius: 4px;
-            flex-grow: 1;
-            word-break: break-all;
-            font-family: monospace;
-            border: 1px solid #333;
+        .site-favicon {
+            width: 26px;
+            height: 26px;
+            border-radius: 50%;
+            background: var(--gray-100);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            border: 1px solid var(--gray-200);
         }
 
-        /* Стили виджета чата (для OBS) */
-        #obs-widget {
-            display: none;
-            width: 100vw;
-            height: 100vh;
-            background: transparent;
-        }
-
-        iframe {
+        .site-favicon img {
             width: 100%;
             height: 100%;
-            border: none;
+            object-fit: contain;
         }
 
-        .status-msg {
-            padding: 10px;
-            border-radius: 4px;
-            margin-bottom: 10px;
-            display: none;
+        .result-link-display {
+            font-size: 14px;
+            color: var(--text-main);
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
         }
-        .error { background: #600; display: block; }
-        .success { background: #060; display: block; }
+
+        .result-title {
+            font-size: 20px;
+            color: #1a0dab;
+            text-decoration: none;
+            display: block;
+            margin-bottom: 4px;
+        }
+
+        .result-title:hover {
+            text-decoration: underline;
+        }
+
+        .result-snippet {
+            font-size: 14px;
+            color: #4d5156;
+            line-height: 1.58;
+        }
+
+        /* Modal for adding site */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .modal {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            width: 100%;
+            max-width: 450px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+
+        .modal h2 { margin-top: 0; }
+
+        .form-group {
+            margin-bottom: 15px;
+            text-align: left;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-size: 14px;
+            font-weight: bold;
+        }
+
+        .form-group input, .form-group textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid var(--gray-200);
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+
+        .modal-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .hidden { display: none !important; }
+
+        #loading-indicator {
+            margin: 20px 0;
+            color: var(--text-light);
+        }
     </style>
 </head>
 <body>
 
-    <!-- Интерфейс настройки -->
-    <div id="setup-ui" class="config-container">
-        <h1>Настройка чата для OBS</h1>
-        
-        <div id="status" class="status-msg"></div>
+    <header>
+        <div id="auth-section">
+            <button id="login-btn" class="btn btn-primary">Войти через Google</button>
+        </div>
+        <div id="user-section" class="user-info hidden">
+            <button id="add-site-btn" class="btn btn-outline">Добавить сайт</button>
+            <div class="user-details">
+                <img id="user-photo" class="avatar" src="" alt="">
+            </div>
+            <button id="logout-btn" class="btn btn-outline">Выйти</button>
+        </div>
+    </header>
 
-        <div class="form-group">
-            <label>Ссылка на трансляцию (YouTube или Twitch)</label>
-            <input type="text" id="stream-url" placeholder="https://www.youtube.com/watch?v=... или https://twitch.tv/username">
+    <div class="container" id="main-ui">
+        <div class="logo">
+            <span>G</span><span>a</span><span>p</span><span>p</span><span>l</span><span>e</span>
         </div>
 
-        <div class="row">
-            <div class="form-group">
-                <label>Размер шрифта (px)</label>
-                <input type="number" id="font-size" value="16">
-            </div>
-            <div class="form-group">
-                <label>Цвет текста</label>
-                <input type="text" id="text-color" value="#ffffff">
-            </div>
+        <div class="search-box-container">
+            <span class="search-icon">🔍</span>
+            <input type="text" id="search-input" class="search-box" placeholder="Поиск в GApp или введите URL">
         </div>
 
-        <div class="row">
-            <div class="form-group">
-                <label>Прозрачность фона (0-1)</label>
-                <input type="number" id="bg-opacity" step="0.1" min="0" max="1" value="0.5">
-            </div>
-            <div class="form-group">
-                <label>Тема чата</label>
-                <select id="chat-theme">
-                    <option value="dark">Темная</option>
-                    <option value="light">Светлая</option>
-                </select>
-            </div>
-        </div>
+        <div id="loading-indicator" class="hidden">Поиск...</div>
 
-        <button id="generate-btn">Сохранить и получить ссылку</button>
-
-        <div id="result-area">
-            <label>Ваша ссылка для OBS (Browser Source):</label>
-            <div class="copy-box">
-                <div id="obs-url" class="url-display"></div>
-                <button style="width: auto; margin-top: 0;" onclick="copyUrl()">Копировать</button>
-            </div>
-            <p style="font-size: 12px; color: #888; margin-top: 10px;">
-                Скопируйте эту ссылку и вставьте её в OBS в источник "Браузер".
-            </p>
+        <div id="results-area" class="results">
+            <!-- Results will be injected here -->
         </div>
     </div>
 
-    <!-- Интерфейс виджета -->
-    <div id="obs-widget">
-        <div id="chat-frame-container" style="width:100%; height:100%;"></div>
+    <!-- Modal for adding site -->
+    <div id="modal" class="modal-overlay">
+        <div class="modal">
+            <h2>Добавить свой сайт</h2>
+            <div class="form-group">
+                <label>Заголовок сайта</label>
+                <input type="text" id="site-title" placeholder="Напр. Мой личный блог">
+            </div>
+            <div class="form-group">
+                <label>URL ссылка</label>
+                <input type="url" id="site-url" placeholder="https://example.com">
+            </div>
+            <div class="form-group">
+                <label>Описание</label>
+                <textarea id="site-desc" rows="3" placeholder="Краткое описание вашего ресурса"></textarea>
+            </div>
+            <div class="modal-actions">
+                <button id="cancel-btn" class="btn btn-outline">Отмена</button>
+                <button id="save-btn" class="btn btn-primary">Опубликовать</button>
+            </div>
+        </div>
     </div>
 
-    <!-- Firebase SDK -->
+    <!-- Firebase SDKs -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-        import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, addDoc, getDocs, query, orderBy } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // Конфигурация Firebase
+        // Firebase Configuration from user
         const firebaseConfig = {
             apiKey: "AIzaSyDb_xlpLYoVEkd1aObJjzvlS8-JPDjn72E",
             authDomain: "generalapp-b4f45.firebaseapp.com",
@@ -206,144 +323,165 @@
         };
 
         const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
         const auth = getAuth(app);
-        
-        // ВАЖНО: appId для путей Firestore
-        const appId = "stream-chat-v1";
+        const db = getFirestore(app);
+        const provider = new GoogleAuthProvider();
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'gapp-search';
+
+        // DOM Elements
+        const loginBtn = document.getElementById('login-btn');
+        const logoutBtn = document.getElementById('logout-btn');
+        const authSection = document.getElementById('auth-section');
+        const userSection = document.getElementById('user-section');
+        const userPhoto = document.getElementById('user-photo');
+        const addSiteBtn = document.getElementById('add-site-btn');
+        const modal = document.getElementById('modal');
+        const cancelBtn = document.getElementById('cancel-btn');
+        const saveBtn = document.getElementById('save-btn');
+        const searchInput = document.getElementById('search-input');
+        const resultsArea = document.getElementById('results-area');
+        const loadingIndicator = document.getElementById('loading-indicator');
 
         let currentUser = null;
+        let allSites = [];
 
-        // Инициализация авторизации
-        const initAuth = async () => {
+        // Auth Logic
+        loginBtn.onclick = async () => {
             try {
-                // Пытаемся авторизоваться анонимно
-                const userCredential = await signInAnonymously(auth);
-                currentUser = userCredential.user;
-                console.log("Authenticated as:", currentUser.uid);
-                checkUrlParams();
+                await signInWithPopup(auth, provider);
             } catch (error) {
-                console.error("Auth error:", error);
-                showStatus("Ошибка подключения к Firebase", "error");
+                console.error("Login failed", error);
             }
         };
 
-        initAuth();
+        logoutBtn.onclick = () => signOut(auth);
 
-        // Проверка параметров URL
-        async function checkUrlParams() {
-            const params = new URLSearchParams(window.location.search);
-            const configId = params.get('config');
-
-            if (configId) {
-                document.getElementById('setup-ui').style.display = 'none';
-                document.getElementById('obs-widget').style.display = 'block';
-                loadChatConfig(configId);
-            }
-        }
-
-        // Загрузка настроек для виджета
-        async function loadChatConfig(id) {
-            try {
-                // ПУТЬ: artifacts / {appId} / public / data / {documentId} (4 сегмента)
-                const docRef = doc(db, 'artifacts', appId, 'public', id);
-                const docSnap = await getDoc(docRef);
-
-                if (docSnap.exists()) {
-                    const data = docSnap.data();
-                    renderChat(data);
-                } else {
-                    document.body.innerHTML = "<h1 style='color:white; text-align:center; padding-top: 50px;'>Конфигурация не найдена</h1>";
-                }
-            } catch (err) {
-                console.error(err);
-                document.body.innerHTML = "<h1 style='color:white; text-align:center; padding-top: 50px;'>Ошибка загрузки</h1>";
-            }
-        }
-
-        // Генерация iframe
-        function renderChat(config) {
-            const container = document.getElementById('chat-frame-container');
-            let chatUrl = "";
-            const streamUrl = config.streamUrl;
-
-            if (streamUrl.includes('youtube.com') || streamUrl.includes('youtu.be')) {
-                let videoId = "";
-                if (streamUrl.includes('v=')) {
-                    videoId = streamUrl.split('v=')[1].split('&')[0];
-                } else {
-                    videoId = streamUrl.split('/').pop();
-                }
-                chatUrl = `https://www.youtube.com/live_chat?v=${videoId}&embed_domain=${window.location.hostname}`;
-            } else if (streamUrl.includes('twitch.tv')) {
-                const channel = streamUrl.split('/').pop();
-                chatUrl = `https://www.twitch.tv/embed/${channel}/chat?parent=${window.location.hostname}&darkpopout`;
-            }
-
-            const iframe = document.createElement('iframe');
-            iframe.src = chatUrl;
-            iframe.style.opacity = config.opacity;
-            container.appendChild(iframe);
-            document.body.style.backgroundColor = 'transparent';
-        }
-
-        // Сохранение настроек
-        document.getElementById('generate-btn').addEventListener('click', async () => {
-            if (!currentUser) {
-                showStatus("Ожидание авторизации...", "error");
-                return;
-            }
-
-            const streamUrl = document.getElementById('stream-url').value.trim();
-            if (!streamUrl) {
-                showStatus("Введите ссылку на стрим", "error");
-                return;
-            }
-
-            const configData = {
-                streamUrl: streamUrl,
-                fontSize: document.getElementById('font-size').value,
-                textColor: document.getElementById('text-color').value,
-                opacity: document.getElementById('bg-opacity').value,
-                theme: document.getElementById('chat-theme').value,
-                createdAt: Date.now(),
-                userId: currentUser.uid
-            };
-
-            const configId = crypto.randomUUID();
-            try {
-                // ИСПРАВЛЕННЫЙ ПУТЬ: 4 сегмента
-                // artifacts / {appId} / public / {configId}
-                await setDoc(doc(db, 'artifacts', appId, 'public', configId), configData);
-                
-                const finalUrl = `${window.location.origin}${window.location.pathname}?config=${configId}`;
-                document.getElementById('obs-url').innerText = finalUrl;
-                document.getElementById('result-area').style.display = 'block';
-                showStatus("Настройки сохранены!", "success");
-            } catch (e) {
-                console.error(e);
-                showStatus("Ошибка сохранения: " + e.message, "error");
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                currentUser = user;
+                authSection.classList.add('hidden');
+                userSection.classList.remove('hidden');
+                userPhoto.src = user.photoURL || '';
+            } else {
+                currentUser = null;
+                authSection.classList.remove('hidden');
+                userSection.classList.add('hidden');
             }
         });
 
-        function showStatus(msg, type) {
-            const el = document.getElementById('status');
-            el.innerText = msg;
-            el.className = 'status-msg ' + type;
-            el.style.display = 'block';
-            setTimeout(() => { el.style.display = 'none'; }, 5000);
+        // Modal Logic
+        addSiteBtn.onclick = () => modal.style.display = 'flex';
+        cancelBtn.onclick = () => modal.style.display = 'none';
+
+        saveBtn.onclick = async () => {
+            const title = document.getElementById('site-title').value.trim();
+            const url = document.getElementById('site-url').value.trim();
+            const desc = document.getElementById('site-desc').value.trim();
+
+            if (!title || !url || !desc) {
+                alert("Пожалуйста, заполните все поля");
+                return;
+            }
+
+            if (!currentUser) return;
+
+            try {
+                saveBtn.disabled = true;
+                saveBtn.innerText = "Сохранение...";
+                
+                // Firestore path rule applied
+                const colRef = collection(db, 'artifacts', appId, 'public', 'data', 'sites');
+                await addDoc(colRef, {
+                    title,
+                    url,
+                    description: desc,
+                    ownerId: currentUser.uid,
+                    ownerName: currentUser.displayName,
+                    createdAt: new Date().toISOString()
+                });
+
+                modal.style.display = 'none';
+                document.getElementById('site-title').value = '';
+                document.getElementById('site-url').value = '';
+                document.getElementById('site-desc').value = '';
+                
+                await fetchSites(); // Refresh
+            } catch (error) {
+                console.error("Error saving site:", error);
+                alert("Ошибка при сохранении");
+            } finally {
+                saveBtn.disabled = false;
+                saveBtn.innerText = "Опубликовать";
+            }
+        };
+
+        // Search and Fetch Logic
+        async function fetchSites() {
+            try {
+                const colRef = collection(db, 'artifacts', appId, 'public', 'data', 'sites');
+                const q = query(colRef); // Rule 2: Simple query, filter in JS
+                const snapshot = await getDocs(q);
+                allSites = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            } catch (e) {
+                console.error("Fetch failed", e);
+            }
         }
 
-        window.copyUrl = function() {
-            const text = document.getElementById('obs-url').innerText;
-            const tempInput = document.createElement("input");
-            tempInput.value = text;
-            document.body.appendChild(tempInput);
-            tempInput.select();
-            document.execCommand("copy");
-            document.body.removeChild(tempInput);
-            alert("Ссылка скопирована!");
+        function getFavicon(url) {
+            try {
+                const domain = new URL(url).hostname;
+                return `https://www.google.com/s2/favicons?sz=64&domain=${domain}`;
+            } catch (e) {
+                return 'https://via.placeholder.com/32';
+            }
+        }
+
+        function renderResults(queryStr) {
+            resultsArea.innerHTML = '';
+            const filtered = allSites.filter(site => 
+                site.title.toLowerCase().includes(queryStr.toLowerCase()) || 
+                site.description.toLowerCase().includes(queryStr.toLowerCase()) ||
+                site.url.toLowerCase().includes(queryStr.toLowerCase())
+            );
+
+            if (queryStr.length === 0) {
+                resultsArea.style.display = 'none';
+                return;
+            }
+
+            resultsArea.style.display = 'block';
+
+            if (filtered.length === 0) {
+                resultsArea.innerHTML = `<p style="color:var(--text-light)">Ничего не найдено по запросу "${queryStr}"</p>`;
+                return;
+            }
+
+            filtered.forEach(site => {
+                const item = document.createElement('div');
+                item.className = 'result-item';
+                item.innerHTML = `
+                    <div class="result-header">
+                        <div class="site-favicon">
+                            <img src="${getFavicon(site.url)}" onerror="this.src='https://www.google.com/s2/favicons?sz=64&domain=google.com'">
+                        </div>
+                        <div class="result-link-display">${site.url}</div>
+                    </div>
+                    <a href="${site.url}" target="_blank" class="result-title">${site.title}</a>
+                    <div class="result-snippet">${site.description}</div>
+                `;
+                resultsArea.appendChild(item);
+            });
+        }
+
+        searchInput.oninput = (e) => {
+            renderResults(e.target.value);
         };
+
+        // Initial Load
+        window.onload = async () => {
+            await fetchSites();
+        };
+
     </script>
 </body>
 </html>
