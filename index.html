@@ -3,331 +3,287 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GApp - Твой Интернет</title>
+    <title>Multi-Gmail Inbox</title>
     <style>
         :root {
-            --accent-color: #00f2ff;
-            --bg-gradient: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
-            --glass-bg: rgba(255, 255, 255, 0.05);
-            --glass-border: rgba(255, 255, 255, 0.1);
-            --text-color: #e0e0e0;
-            --text-muted: #a0a0a0;
+            --primary-color: #c04b37;
+            --bg-color: #f6f8fc;
+            --sidebar-width: 260px;
+            --border-color: #dadce0;
         }
 
         body {
-            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
             margin: 0;
-            padding: 0;
-            color: var(--text-color);
-            background: var(--bg-gradient);
-            background-attachment: fixed;
-            min-height: 100vh;
-            overflow-x: hidden;
-        }
-
-        /* Навигация */
-        header {
+            background-color: var(--bg-color);
+            color: #202124;
             display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 20px 5%;
-            backdrop-filter: blur(10px);
-            border-bottom: 1px solid var(--glass-border);
-        }
-
-        .brand {
-            font-size: 24px;
-            font-weight: 800;
-            letter-spacing: 2px;
-            color: var(--accent-color);
-            text-transform: uppercase;
-            text-shadow: 0 0 10px rgba(0, 242, 255, 0.5);
-        }
-
-        .auth-controls {
-            display: flex;
-            gap: 15px;
-            align-items: center;
-        }
-
-        .btn {
-            padding: 10px 20px;
-            border-radius: 12px;
-            border: none;
-            cursor: pointer;
-            font-weight: 600;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            font-size: 14px;
-        }
-
-        .btn-glow {
-            background: var(--accent-color);
-            color: #000;
-            box-shadow: 0 0 15px rgba(0, 242, 255, 0.3);
-        }
-
-        .btn-glow:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 20px rgba(0, 242, 255, 0.5);
-        }
-
-        .btn-glass {
-            background: var(--glass-bg);
-            color: #fff;
-            border: 1px solid var(--glass-border);
-            backdrop-filter: blur(5px);
-        }
-
-        .btn-glass:hover {
-            background: rgba(255, 255, 255, 0.1);
-        }
-
-        /* Главная секция */
-        .hero {
-            text-align: center;
-            padding: 100px 20px 40px;
-        }
-
-        .hero h1 {
-            font-size: clamp(40px, 8vw, 80px);
-            margin-bottom: 30px;
-            background: linear-gradient(to right, #fff, var(--accent-color));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-
-        .search-container {
-            max-width: 700px;
-            margin: 0 auto;
-            position: relative;
-        }
-
-        .search-input {
-            width: 100%;
-            padding: 20px 30px;
-            padding-left: 60px;
-            border-radius: 20px;
-            border: 1px solid var(--glass-border);
-            background: var(--glass-bg);
-            color: #fff;
-            font-size: 18px;
-            outline: none;
-            backdrop-filter: blur(15px);
-            box-sizing: border-box;
-            transition: border-color 0.3s;
-        }
-
-        .search-input:focus {
-            border-color: var(--accent-color);
-            box-shadow: 0 0 20px rgba(0, 242, 255, 0.1);
-        }
-
-        .search-icon-float {
-            position: absolute;
-            left: 20px;
-            top: 50%;
-            transform: translateY(-50%);
-            font-size: 20px;
-            opacity: 0.5;
-        }
-
-        /* Результаты */
-        .results-grid {
-            max-width: 900px;
-            margin: 40px auto;
-            padding: 0 20px;
-            display: grid;
-            gap: 20px;
-        }
-
-        .site-card {
-            background: var(--glass-bg);
-            border: 1px solid var(--glass-border);
-            border-radius: 20px;
-            padding: 25px;
-            backdrop-filter: blur(10px);
-            transition: transform 0.3s;
-            text-align: left;
-            position: relative;
+            height: 100vh;
             overflow: hidden;
         }
 
-        .site-card:hover {
-            transform: scale(1.02);
-            border-color: rgba(0, 242, 255, 0.3);
+        /* Sidebar */
+        .sidebar {
+            width: var(--sidebar-width);
+            background: #fff;
+            border-right: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            padding: 16px;
         }
 
-        .card-header {
+        .logo {
+            font-size: 22px;
+            font-weight: bold;
+            color: var(--primary-color);
+            margin-bottom: 30px;
             display: flex;
             align-items: center;
-            gap: 15px;
-            margin-bottom: 12px;
+            gap: 10px;
         }
 
-        .card-icon {
-            width: 40px;
-            height: 40px;
-            border-radius: 10px;
-            background: #fff;
-            padding: 5px;
-            flex-shrink: 0;
+        .btn-add {
+            background-color: #c2e7ff;
+            color: #001d35;
+            border: none;
+            padding: 15px 20px;
+            border-radius: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            margin-bottom: 20px;
+            transition: box-shadow 0.2s;
         }
 
-        .card-info h3 {
+        .btn-add:hover {
+            box-shadow: 0 1px 3px 0 rgba(60,64,67,0.30), 0 4px 8px 3px rgba(60,64,67,0.15);
+        }
+
+        .account-list {
+            list-style: none;
+            padding: 0;
             margin: 0;
-            color: #fff;
-            font-size: 20px;
         }
 
-        .card-info span {
-            font-size: 13px;
-            color: var(--accent-color);
-            opacity: 0.8;
+        .account-item {
+            padding: 10px;
+            border-radius: 20px;
+            margin-bottom: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
         }
 
-        .card-desc {
-            font-size: 15px;
-            color: var(--text-muted);
-            line-height: 1.6;
+        .account-item:hover {
+            background-color: #f1f3f4;
         }
 
-        .card-link {
-            position: absolute;
-            top: 0; left: 0; width: 100%; height: 100%;
+        .account-item.active {
+            background-color: #e8f0fe;
+            color: #1967d2;
+            font-weight: bold;
+        }
+
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background: #fff;
+            margin: 8px;
+            border-radius: 16px;
+            box-shadow: 0 1px 2px 0 rgba(60,64,67,0.3), 0 1px 3px 1px rgba(60,64,67,0.15);
+        }
+
+        .header {
+            padding: 15px 20px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .search-bar {
+            background: #f1f3f4;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            width: 60%;
+            max-width: 600px;
+        }
+
+        .inbox-list {
+            flex: 1;
+            overflow-y: auto;
+        }
+
+        .email-item {
+            display: grid;
+            grid-template-columns: 200px 1fr 100px;
+            padding: 10px 20px;
+            border-bottom: 1px solid #f1f3f4;
+            cursor: pointer;
+            align-items: center;
+            font-size: 14px;
+        }
+
+        .email-item:hover {
+            box-shadow: inset 1px 0 0 #dadce0, inset -1px 0 0 #dadce0, 0 1px 2px 0 rgba(60,64,67,.3), 0 1px 3px 1px rgba(60,64,67,.15);
             z-index: 1;
         }
 
-        /* Модалка */
-        .modal-wrap {
+        .email-sender {
+            font-weight: bold;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .email-subject {
+            color: #5f6368;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .email-account-tag {
+            font-size: 10px;
+            background: #e8eaed;
+            padding: 2px 6px;
+            border-radius: 4px;
+            margin-right: 10px;
+            color: #3c4043;
+        }
+
+        .email-date {
+            text-align: right;
+            color: #5f6368;
+        }
+
+        /* Modals */
+        .modal-overlay {
             position: fixed;
-            top:0; left:0; width:100%; height:100%;
-            background: rgba(0,0,0,0.8);
-            backdrop-filter: blur(10px);
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
             display: none;
             justify-content: center;
             align-items: center;
-            z-index: 9999;
+            z-index: 100;
         }
 
-        .modal-content {
-            background: #1a1a2e;
-            padding: 40px;
-            border-radius: 30px;
-            width: 90%;
-            max-width: 500px;
-            border: 1px solid var(--glass-border);
-            text-align: left;
+        .modal {
+            background: white;
+            padding: 25px;
+            border-radius: 8px;
+            width: 400px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
         }
 
-        .input-group {
-            margin-bottom: 20px;
-        }
-
-        .input-group label {
-            display: block;
-            margin-bottom: 8px;
-            font-size: 14px;
-            color: var(--text-muted);
-        }
-
-        .input-group input, .input-group textarea {
+        .modal h2 { margin-top: 0; font-size: 18px; }
+        .modal input, .modal textarea {
             width: 100%;
-            padding: 12px;
-            background: #0f0f1f;
-            border: 1px solid var(--glass-border);
-            border-radius: 10px;
-            color: #fff;
-            outline: none;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ccc;
+            border-radius: 4px;
             box-sizing: border-box;
         }
 
-        .input-group input:focus {
-            border-color: var(--accent-color);
+        .modal-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-top: 20px;
         }
 
-        .hidden { display: none !important; }
-
-        .avatar {
-            width: 35px;
-            height: 35px;
-            border-radius: 50%;
-            border: 2px solid var(--accent-color);
+        .btn {
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            border: none;
+            font-weight: 500;
         }
 
-        /* Анимация загрузки */
-        .loader {
-            width: 30px;
-            height: 30px;
-            border: 3px solid var(--glass-border);
-            border-top: 3px solid var(--accent-color);
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-            margin: 20px auto;
-        }
+        .btn-primary { background: var(--primary-color); color: white; }
+        .btn-secondary { background: #e8eaed; color: #3c4043; }
 
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+        #loading {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #323232;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 4px;
+            display: none;
         }
     </style>
 </head>
 <body>
 
-    <header>
-        <div class="brand">GAPP</div>
-        <div class="auth-controls">
-            <div id="logged-out-ui">
-                <button id="login-btn" class="btn btn-glow">Войти</button>
-            </div>
-            <div id="logged-in-ui" class="hidden">
-                <button id="add-site-trigger" class="btn btn-glass">+ Добавить</button>
-                <img id="user-avatar" class="avatar" src="" alt="user">
-                <button id="logout-btn" class="btn btn-glass">Выход</button>
-            </div>
+    <div id="loading">Загрузка...</div>
+
+    <aside class="sidebar">
+        <div class="logo">
+            <svg width="24" height="24" viewBox="0 0 24 24"><path fill="currentColor" d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5l-8-5V6l8 5l8-5v2z"/></svg>
+            Multi-Gmail
         </div>
-    </header>
+        <button class="btn-add" onclick="showModal('accountModal')">＋ Добавить аккаунт</button>
+        <button class="btn-add" style="background:#fce8e6" onclick="showModal('emailModal')">✉ Написать письмо</button>
+        
+        <div style="font-weight: bold; margin-bottom: 10px; font-size: 12px; color: #5f6368; text-transform: uppercase;">Аккаунты</div>
+        <ul class="account-list" id="accountList">
+            <!-- Аккаунты будут здесь -->
+        </ul>
+    </aside>
 
-    <main class="hero">
-        <h1>Твой Интернет</h1>
-        <div class="search-container">
-            <span class="search-icon-float">🔭</span>
-            <input type="text" id="main-search" class="search-input" placeholder="Название или URL сайта...">
-        </div>
+    <main class="main-content">
+        <header class="header">
+            <input type="text" class="search-bar" placeholder="Поиск в почте">
+            <div id="statusInfo">Всего сообщений: 0</div>
+        </header>
 
-        <div id="loader" class="loader hidden"></div>
-
-        <div id="results" class="results-grid">
-            <!-- Сайты будут тут -->
+        <div class="inbox-list" id="emailList">
+            <!-- Письма будут здесь -->
         </div>
     </main>
 
-    <!-- Modal -->
-    <div id="site-modal" class="modal-wrap">
-        <div class="modal-content">
-            <h2 style="margin-top: 0;">Новый ресурс</h2>
-            <div class="input-group">
-                <label>Название проекта</label>
-                <input type="text" id="f-title" placeholder="Крутой Сайт">
-            </div>
-            <div class="input-group">
-                <label>Ссылка (URL)</label>
-                <input type="url" id="f-url" placeholder="https://example.com">
-            </div>
-            <div class="input-group">
-                <label>Что это такое?</label>
-                <textarea id="f-desc" rows="3" placeholder="Краткое описание..."></textarea>
-            </div>
-            <div style="display: flex; gap: 10px; justify-content: flex-end;">
-                <button id="close-modal" class="btn btn-glass">Отмена</button>
-                <button id="confirm-save" class="btn btn-glow">Опубликовать</button>
+    <!-- Modal for Adding Account -->
+    <div class="modal-overlay" id="accountModal">
+        <div class="modal">
+            <h2>Добавить новый аккаунт</h2>
+            <input type="email" id="newAccountEmail" placeholder="example@gmail.com">
+            <div class="modal-actions">
+                <button class="btn btn-secondary" onclick="hideModal('accountModal')">Отмена</button>
+                <button class="btn btn-primary" onclick="addAccount()">Добавить</button>
             </div>
         </div>
     </div>
 
+    <!-- Modal for Sending Email (Simulation) -->
+    <div class="modal-overlay" id="emailModal">
+        <div class="modal">
+            <h2>Симуляция входящего письма</h2>
+            <select id="selectAccount" style="width: 100%; padding: 10px; margin-bottom: 10px;"></select>
+            <input type="text" id="emailSender" placeholder="От кого">
+            <input type="text" id="emailSubject" placeholder="Тема">
+            <textarea id="emailBody" rows="4" placeholder="Текст письма"></textarea>
+            <div class="modal-actions">
+                <button class="btn btn-secondary" onclick="hideModal('emailModal')">Отмена</button>
+                <button class="btn btn-primary" onclick="sendEmail()">Получить</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Firebase SDK -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, collection, addDoc, getDocs, query, where } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, addDoc, onSnapshot, query, doc, deleteDoc, orderBy } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyDb_xlpLYoVEkd1aObJjzvlS8-JPDjn72E",
@@ -336,132 +292,188 @@
             projectId: "generalapp-b4f45",
             storageBucket: "generalapp-b4f45.firebasestorage.app",
             messagingSenderId: "800461808673",
-            appId: "1:800461808673:web:ec6374f28c7a40ced7ef60"
+            appId: "1:800461808673:web:ec6374f28c7a40ced7ef60",
+            measurementId: "G-JYL0G1J1GJ"
         };
 
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
-        const provider = new GoogleAuthProvider();
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'gapp-custom';
+        const appId = "multi-gmail-app";
 
-        let user = null;
-        let sitesList = [];
+        let currentUser = null;
+        let accounts = [];
+        let emails = [];
 
-        // UI Elements
-        const resultsEl = document.getElementById('results');
-        const searchInput = document.getElementById('main-search');
-        const loader = document.getElementById('loader');
-
-        // Auth
-        document.getElementById('login-btn').onclick = () => signInWithPopup(auth, provider);
-        document.getElementById('logout-btn').onclick = () => signOut(auth);
-
-        onAuthStateChanged(auth, (u) => {
-            user = u;
-            if (user) {
-                document.getElementById('logged-out-ui').classList.add('hidden');
-                document.getElementById('logged-in-ui').classList.remove('hidden');
-                document.getElementById('user-avatar').src = user.photoURL;
-            } else {
-                document.getElementById('logged-out-ui').classList.remove('hidden');
-                document.getElementById('logged-in-ui').classList.add('hidden');
-            }
-        });
-
-        // Modal Controls
-        const modal = document.getElementById('site-modal');
-        document.getElementById('add-site-trigger').onclick = () => modal.style.display = 'flex';
-        document.getElementById('close-modal').onclick = () => modal.style.display = 'none';
-
-        // Load Data
-        async function loadSites() {
-            loader.classList.remove('hidden');
+        // Auth initialization
+        const initAuth = async () => {
+            showLoading(true);
             try {
-                const colRef = collection(db, 'artifacts', appId, 'public', 'data', 'sites');
-                const snap = await getDocs(colRef);
-                sitesList = snap.docs.map(doc => ({id: doc.id, ...doc.data()}));
-                render(searchInput.value);
-            } finally {
-                loader.classList.add('hidden');
-            }
-        }
-
-        // Search logic (No verification needed for searching)
-        function render(queryStr = "") {
-            resultsEl.innerHTML = "";
-            const term = queryStr.toLowerCase().trim();
-            
-            // Фильтр по названию ИЛИ по ссылке
-            const filtered = sitesList.filter(s => 
-                s.title.toLowerCase().includes(term) || 
-                s.url.toLowerCase().includes(term)
-            );
-
-            if (filtered.length === 0) {
-                resultsEl.innerHTML = `<div style="text-align:center; opacity:0.5; grid-column: 1/-1;">Ничего не найдено</div>`;
-                return;
-            }
-
-            filtered.forEach(site => {
-                const domain = new URL(site.url).hostname;
-                const favicon = `https://www.google.com/s2/favicons?sz=64&domain=${domain}`;
-                
-                const card = document.createElement('div');
-                card.className = 'site-card';
-                card.innerHTML = `
-                    <a href="${site.url}" target="_blank" class="card-link"></a>
-                    <div class="card-header">
-                        <img class="card-icon" src="${favicon}" onerror="this.src='https://via.placeholder.com/40?text=?'">
-                        <div class="card-info">
-                            <h3>${site.title}</h3>
-                            <span>${domain}</span>
-                        </div>
-                    </div>
-                    <div class="card-desc">${site.description}</div>
-                `;
-                resultsEl.appendChild(card);
-            });
-        }
-
-        // Save Logic
-        document.getElementById('confirm-save').onclick = async () => {
-            if (!user) return;
-            
-            const title = document.getElementById('f-title').value.trim();
-            const url = document.getElementById('f-url').value.trim();
-            const description = document.getElementById('f-desc').value.trim();
-
-            if (!title || !url || !description) {
-                alert("Заполни все поля!");
-                return;
-            }
-
-            // ПРОВЕРКА НА ДУБЛИКАТ
-            const exists = sitesList.some(s => s.url.toLowerCase() === url.toLowerCase());
-            if (exists) {
-                alert("Этот сайт уже есть в нашей базе!");
-                return;
-            }
-
-            try {
-                const colRef = collection(db, 'artifacts', appId, 'public', 'data', 'sites');
-                await addDoc(colRef, {
-                    title, url, description,
-                    uid: user.uid,
-                    ts: Date.now()
-                });
-                modal.style.display = 'none';
-                await loadSites();
-            } catch (e) {
-                alert("Ошибка сохранения");
+                await signInAnonymously(auth);
+            } catch (error) {
+                console.error("Auth error:", error);
+                showMessage("Ошибка авторизации");
             }
         };
 
-        searchInput.oninput = (e) => render(e.target.value);
+        onAuthStateChanged(auth, (user) => {
+            currentUser = user;
+            if (user) {
+                setupSubscriptions();
+            }
+            showLoading(false);
+        });
 
-        // Bootstrap
-        loadSites();
+        // Setup Firestore Subscriptions
+        function setupSubscriptions() {
+            const accountsRef = collection(db, 'artifacts', appId, 'users', currentUser.uid, 'accounts');
+            const emailsRef = collection(db, 'artifacts', appId, 'users', currentUser.uid, 'emails');
+
+            // Listen for accounts
+            onSnapshot(accountsRef, (snapshot) => {
+                accounts = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                renderAccounts();
+                updateAccountSelect();
+            }, (err) => console.error("Accounts list error:", err));
+
+            // Listen for emails
+            onSnapshot(emailsRef, (snapshot) => {
+                emails = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                // Sort by date in memory (Rule 2: avoid complex query if possible)
+                emails.sort((a, b) => b.timestamp - a.timestamp);
+                renderEmails();
+            }, (err) => console.error("Email list error:", err));
+        }
+
+        // --- Functions ---
+
+        window.addAccount = async () => {
+            const emailInput = document.getElementById('newAccountEmail');
+            const email = emailInput.value.trim();
+            if (!email || !currentUser) return;
+
+            showLoading(true);
+            try {
+                await addDoc(collection(db, 'artifacts', appId, 'users', currentUser.uid, 'accounts'), {
+                    email: email,
+                    createdAt: Date.now()
+                });
+                emailInput.value = '';
+                hideModal('accountModal');
+            } catch (e) {
+                console.error(e);
+            }
+            showLoading(false);
+        };
+
+        window.sendEmail = async () => {
+            const targetAccount = document.getElementById('selectAccount').value;
+            const sender = document.getElementById('emailSender').value.trim();
+            const subject = document.getElementById('emailSubject').value.trim();
+            const body = document.getElementById('emailBody').value.trim();
+
+            if (!targetAccount || !sender || !currentUser) return;
+
+            showLoading(true);
+            try {
+                await addDoc(collection(db, 'artifacts', appId, 'users', currentUser.uid, 'emails'), {
+                    toAccount: targetAccount,
+                    sender: sender,
+                    subject: subject,
+                    body: body,
+                    timestamp: Date.now()
+                });
+                hideModal('emailModal');
+            } catch (e) {
+                console.error(e);
+            }
+            showLoading(false);
+        };
+
+        function renderAccounts() {
+            const list = document.getElementById('accountList');
+            list.innerHTML = `
+                <li class="account-item active" onclick="filterEmails('all')">
+                    <span>Все ящики</span>
+                    <span style="font-size:10px">${emails.length}</span>
+                </li>
+            `;
+            
+            accounts.forEach(acc => {
+                const count = emails.filter(e => e.toAccount === acc.email).length;
+                const li = document.createElement('li');
+                li.className = 'account-item';
+                li.innerHTML = `
+                    <span title="${acc.email}">${acc.email.split('@')[0]}</span>
+                    <span style="font-size:10px">${count}</span>
+                `;
+                li.onclick = () => filterEmails(acc.email);
+                list.appendChild(li);
+            });
+        }
+
+        function renderEmails(filter = 'all') {
+            const list = document.getElementById('emailList');
+            list.innerHTML = '';
+            
+            const filtered = filter === 'all' 
+                ? emails 
+                : emails.filter(e => e.toAccount === filter);
+
+            document.getElementById('statusInfo').innerText = `Сообщений: ${filtered.length}`;
+
+            if (filtered.length === 0) {
+                list.innerHTML = '<div style="padding: 40px; text-align: center; color: #5f6368;">Входящих сообщений пока нет</div>';
+                return;
+            }
+
+            filtered.forEach(mail => {
+                const date = new Date(mail.timestamp).toLocaleDateString([], { month: 'short', day: 'numeric' });
+                const item = document.createElement('div');
+                item.className = 'email-item';
+                item.innerHTML = `
+                    <div class="email-sender">${mail.sender}</div>
+                    <div class="email-subject">
+                        <span class="email-account-tag">${mail.toAccount}</span>
+                        ${mail.subject} - <span style="font-weight: normal; color: #80868b">${mail.body.substring(0, 50)}...</span>
+                    </div>
+                    <div class="email-date">${date}</div>
+                `;
+                list.appendChild(item);
+            });
+        }
+
+        window.filterEmails = (account) => {
+            renderEmails(account);
+            // Visual active state
+            const items = document.querySelectorAll('.account-item');
+            items.forEach(i => i.classList.remove('active'));
+            event.currentTarget.classList.add('active');
+        };
+
+        function updateAccountSelect() {
+            const select = document.getElementById('selectAccount');
+            select.innerHTML = accounts.map(acc => `<option value="${acc.email}">${acc.email}</option>`).join('');
+            if (accounts.length === 0) {
+                select.innerHTML = '<option disabled>Сначала добавьте аккаунт</option>';
+            }
+        }
+
+        // UI Helpers
+        window.showModal = (id) => document.getElementById(id).style.display = 'flex';
+        window.hideModal = (id) => document.getElementById(id).style.display = 'none';
+        
+        function showLoading(show) {
+            document.getElementById('loading').style.display = show ? 'block' : 'none';
+        }
+
+        function showMessage(msg) {
+            const status = document.getElementById('statusInfo');
+            status.innerText = msg;
+            setTimeout(() => status.innerText = `Всего сообщений: ${emails.length}`, 3000);
+        }
+
+        initAuth();
 
     </script>
 </body>
