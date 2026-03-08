@@ -3,491 +3,367 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>gapp.test | Stories</title>
-    
-    <!-- OpenGraph -->
-    <meta property="og:type" content="article">
-    <meta id="og-title" property="og:title" content="gapp.test">
-    
-    <!-- Marked.js for Markdown -->
-    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,700;1,400&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+    <title>GApp - Твои истории и посты</title>
+    <!-- OpenGraph Tags (Dynamic placeholder) -->
+    <meta property="og:title" content="GApp - Платформа для контента">
+    <meta property="og:description" content="Создавай посты и истории в один клик">
+    <meta property="og:type" content="website">
+
+    <script src="https://www.gstatic.com/firebasejs/11.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/11.6.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore-compat.js"></script>
 
     <style>
-        /* CSS Variables for Themes */
         :root {
-            --bg: #ffffff;
-            --nav-bg: rgba(255, 255, 255, 0.8);
-            --text: #1a1a1a;
-            --text-muted: #666666;
-            --border: #eeeeee;
-            --primary: #007bff;
-            --primary-hover: #0056b3;
-            --card-bg: #fdfdfd;
-            --input-bg: #ffffff;
+            --primary: #2ecc71;
+            --dark: #2c3e50;
+            --light: #ecf0f1;
+            --accent: #3498db;
+            --text: #333;
+            --white: #ffffff;
+            --shadow: 0 4px 15px rgba(0,0,0,0.1);
         }
 
-        [data-theme="dark"] {
-            --bg: #121212;
-            --nav-bg: rgba(18, 18, 18, 0.8);
-            --text: #e0e0e0;
-            --text-muted: #a0a0a0;
-            --border: #2d2d2d;
-            --primary: #3793ff;
-            --card-bg: #1e1e1e;
-            --input-bg: #1a1a1a;
-        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: var(--light); color: var(--text); line-height: 1.6; }
+        
+        /* Layout */
+        .header { background: var(--white); padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center; box-shadow: var(--shadow); position: sticky; top: 0; z-index: 100; }
+        .logo { font-size: 1.5rem; font-weight: bold; color: var(--primary); text-decoration: none; }
+        .nav-btns button { margin-left: 10px; padding: 8px 16px; border-radius: 20px; border: none; cursor: pointer; transition: 0.3s; font-weight: 500; }
+        .btn-login { background: var(--primary); color: white; }
+        .btn-outline { border: 1px solid var(--primary) !important; color: var(--primary); background: transparent; }
+        
+        .container { max-width: 800px; margin: 2rem auto; padding: 0 1rem; }
+        
+        /* Dashboard & Editor */
+        .card { background: var(--white); padding: 2rem; border-radius: 12px; box-shadow: var(--shadow); margin-bottom: 2rem; }
+        .input-group { margin-bottom: 1.5rem; }
+        label { display: block; margin-bottom: 0.5rem; font-weight: 600; }
+        input, textarea { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 1rem; }
+        textarea { min-height: 200px; resize: vertical; }
+        
+        .btn-save { background: var(--primary); color: white; width: 100%; padding: 15px; border: none; border-radius: 8px; font-size: 1.1rem; cursor: pointer; }
+        
+        /* Social Links inputs */
+        .social-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 
-        * { box-sizing: border-box; transition: background-color 0.3s, color 0.3s; }
-        body {
-            margin: 0;
-            font-family: 'Inter', sans-serif;
-            background-color: var(--bg);
-            color: var(--text);
-            line-height: 1.5;
-        }
+        /* Story/Post Styles */
+        .post-item { background: white; padding: 15px; border-radius: 8px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; border-left: 5px solid var(--primary); }
+        .post-link { color: var(--accent); text-decoration: none; font-weight: bold; }
+        
+        /* Viewer Styles */
+        .content-view { background: white; padding: 3rem; border-radius: 15px; }
+        .content-view h1 { font-size: 2.5rem; margin-bottom: 1rem; }
+        .banner-img { width: 100%; height: 300px; object-fit: cover; border-radius: 12px; margin-bottom: 2rem; }
+        
+        .yt-container { position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden; margin: 20px 0; border-radius: 12px; }
+        .yt-container iframe { position: absolute; top:0; left: 0; width: 100%; height: 100%; }
+        
+        .external-link { display: inline-block; background: #f8f9fa; padding: 10px 20px; border: 1px solid #ddd; border-radius: 5px; color: var(--accent); text-decoration: none; margin: 10px 0; }
+        
+        .footer-socials { margin-top: 3rem; padding-top: 2rem; border-top: 1px solid #eee; display: flex; flex-wrap: wrap; gap: 15px; }
+        .social-icon { padding: 8px 15px; border-radius: 20px; background: #eee; text-decoration: none; color: #555; font-size: 0.9rem; }
+        
+        .donation-btn { display: block; text-align: center; background: #ff7300; color: white; padding: 15px; border-radius: 8px; text-decoration: none; font-weight: bold; margin-top: 2rem; }
 
-        .container { max-width: 800px; margin: 0 auto; padding: 0 20px; }
-
-        /* Navigation */
-        nav {
-            background: var(--nav-bg);
-            backdrop-filter: blur(10px);
-            border-bottom: 1px solid var(--border);
-            padding: 12px 0;
-            position: sticky;
-            top: 0;
-            z-index: 100;
-        }
-
-        .nav-content { display: flex; justify-content: space-between; align-items: center; }
-        .logo { font-size: 1.3rem; font-weight: 700; cursor: pointer; text-decoration: none; color: var(--text); }
-        .logo span { color: var(--primary); }
-
-        .nav-actions { display: flex; align-items: center; gap: 15px; }
-
-        .btn {
-            padding: 8px 18px;
-            border-radius: 20px;
-            border: none;
-            cursor: pointer;
-            font-weight: 500;
-            font-size: 0.9rem;
-        }
-
-        .btn-primary { background: var(--primary); color: white; }
-        .btn-outline { background: transparent; border: 1px solid var(--border); color: var(--text); }
-
-        /* Theme Toggle */
-        .theme-toggle {
-            background: none;
-            border: none;
-            cursor: pointer;
-            font-size: 1.2rem;
-            color: var(--text);
-            padding: 5px;
-        }
-
-        /* Views */
-        .view { padding: 40px 0; }
+        /* Hidden elements */
         .hidden { display: none !important; }
-
-        /* Editor */
-        .editor-input {
-            width: 100%;
-            border: none;
-            outline: none;
-            background: transparent;
-            margin-bottom: 20px;
-            color: var(--text);
-        }
-        .title-input { font-size: 2.5rem; font-weight: 700; }
-        .content-area {
-            width: 100%;
-            min-height: 450px;
-            font-family: 'Lora', serif;
-            font-size: 1.2rem;
-            border: none;
-            outline: none;
-            resize: none;
-            color: var(--text);
-            background: transparent;
-        }
-
-        /* Profile & Settings */
-        .profile-header {
-            display: flex;
-            align-items: center;
-            gap: 20px;
-            margin-bottom: 30px;
-            padding-bottom: 20px;
-            border-bottom: 1px solid var(--border);
-        }
-        .profile-avatar { width: 80px; height: 80px; border-radius: 50%; }
-
-        .post-card {
-            border: 1px solid var(--border);
-            padding: 20px;
-            border-radius: 12px;
-            margin-bottom: 15px;
-            background: var(--card-bg);
-        }
-
-        /* Modal / Anti-Bot */
-        .modal-overlay {
-            position: fixed;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(0,0,0,0.7);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 1000;
-        }
-        .modal {
-            background: var(--bg);
-            padding: 30px;
-            border-radius: 15px;
-            max-width: 400px;
-            width: 90%;
-            text-align: center;
-        }
-
-        /* Toast */
-        #toast {
-            position: fixed;
-            bottom: 25px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: #333;
-            color: white;
-            padding: 10px 25px;
-            border-radius: 30px;
-            display: none;
-            z-index: 1100;
-        }
-
-        .fab {
-            position: fixed;
-            bottom: 30px; right: 30px;
-            width: 60px; height: 60px;
-            border-radius: 30px;
-            background: var(--primary);
-            color: white; border: none;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-            cursor: pointer; font-size: 24px;
-        }
+        
+        /* Stories Banner */
+        .banner-upload-preview { height: 150px; background: #f0f0f0; border: 2px dashed #ccc; border-radius: 8px; display: flex; align-items: center; justify-content: center; margin-bottom: 1rem; overflow: hidden; }
+        .banner-upload-preview img { width: 100%; height: 100%; object-fit: cover; }
     </style>
 </head>
-<body data-theme="light">
+<body>
 
-    <!-- Anti-Bot Verification -->
-    <div id="bot-check" class="modal-overlay hidden">
-        <div class="modal">
-            <h3>Проверка безопасности</h3>
-            <p>Чтобы продолжить, введите результат:</p>
-            <div id="captcha-question" style="font-size: 1.5rem; font-weight: bold; margin: 15px 0;"></div>
-            <input type="number" id="captcha-answer" style="padding: 10px; border: 1px solid var(--border); border-radius: 5px; width: 80px; text-align: center;">
-            <div style="margin-top: 20px;">
-                <button id="btn-verify" class="btn btn-primary">Проверить</button>
-            </div>
+    <header class="header">
+        <a href="#" class="logo" onclick="showSection('home')">GApp</a>
+        <div class="nav-btns">
+            <span id="user-name" style="margin-right: 15px; font-weight: bold;"></span>
+            <button id="btn-login" class="btn-login" onclick="login()">Войти через Google</button>
+            <button id="btn-dashboard" class="btn-outline hidden" onclick="showSection('dashboard')">Мои посты</button>
+            <button id="btn-create" class="btn-login hidden" onclick="showSection('editor')">Создать пост</button>
+            <button id="btn-logout" class="btn-outline hidden" onclick="logout()">Выйти</button>
         </div>
+    </header>
+
+    <div class="container">
+        <!-- Home Section -->
+        <section id="section-home" class="section">
+            <div class="card" style="text-align: center;">
+                <h1>Добро пожаловать в GApp</h1>
+                <p>Ваша персональная платформа для создания лонгридов и визуальных историй.</p>
+                <br>
+                <button class="btn-save" onclick="login()">Начать сейчас</button>
+            </div>
+        </section>
+
+        <!-- Dashboard Section -->
+        <section id="section-dashboard" class="section hidden">
+            <h2>Мои публикации</h2>
+            <div id="posts-list" style="margin-top: 1.5rem;">
+                <!-- Posts will appear here -->
+            </div>
+        </section>
+
+        <!-- Editor Section -->
+        <section id="section-editor" class="section hidden">
+            <div class="card">
+                <h2>Создание публикации</h2>
+                <br>
+                <div class="input-group">
+                    <label>Название поста</label>
+                    <input type="text" id="post-title" placeholder="Заголовок...">
+                </div>
+                
+                <div class="input-group">
+                    <label>Баннер истории (URL фото)</label>
+                    <input type="text" id="post-banner" placeholder="https://example.com/image.jpg" oninput="updatePreview(this.value)">
+                    <div class="banner-upload-preview" id="preview-box">Превью баннера</div>
+                </div>
+
+                <div class="input-group">
+                    <label>Текст поста (Markdown)</label>
+                    <p style="font-size: 0.8rem; color: #666; margin-bottom: 5px;">
+                        Поддержка: [ytbe=ссылка] и [URL=ссылка]
+                    </p>
+                    <textarea id="post-content" placeholder="Начните писать здесь..."></textarea>
+                </div>
+
+                <h3>Социальные сети</h3>
+                <div class="social-grid">
+                    <input type="text" id="social-vk" placeholder="VK URL">
+                    <input type="text" id="social-tg" placeholder="Telegram URL">
+                    <input type="text" id="social-ok" placeholder="OK URL">
+                    <input type="text" id="social-ds" placeholder="Discord URL">
+                    <input type="text" id="social-yt" placeholder="YouTube URL">
+                    <input type="text" id="social-gh" placeholder="GitHub URL">
+                </div>
+                <br>
+                <div class="input-group">
+                    <label>Ссылка на Donation Alerts</label>
+                    <input type="text" id="social-donation" placeholder="https://www.donationalerts.com/r/username">
+                </div>
+
+                <button class="btn-save" onclick="savePost()">Опубликовать</button>
+            </div>
+        </section>
+
+        <!-- Viewer Section -->
+        <section id="section-viewer" class="section hidden">
+            <div id="viewer-container" class="content-view">
+                <!-- Content injected here -->
+            </div>
+        </section>
     </div>
 
-    <nav>
-        <div class="container nav-content">
-            <a href="#" class="logo" onclick="router.navigate('home')">gapp<span>.test</span></a>
-            <div class="nav-actions">
-                <button class="theme-toggle" onclick="toggleTheme()" id="theme-icon">🌙</button>
-                <div id="auth-section">
-                    <button id="btn-login-trigger" class="btn btn-primary">Войти</button>
-                    <div id="user-menu" class="hidden" style="display: flex; align-items: center; gap: 10px;">
-                        <img id="nav-avatar" class="profile-avatar" style="width: 32px; height: 32px; cursor: pointer;" onclick="router.navigate('profile')">
-                    </div>
-                </div>
-            </div>
-        </div>
-    </nav>
-
-    <main class="container">
-        
-        <!-- HOME: Feed of all posts -->
-        <section id="view-home" class="view">
-            <h2 id="feed-title">Последние истории</h2>
-            <div id="global-posts-list"></div>
-        </section>
-
-        <!-- PROFILE / PRIVATE CABINET -->
-        <section id="view-profile" class="view hidden">
-            <div class="profile-header">
-                <img id="prof-img" class="profile-avatar" src="">
-                <div>
-                    <h2 id="prof-name" style="margin: 0;"></h2>
-                    <p id="prof-email" style="color: var(--text-muted); margin: 5px 0;"></p>
-                    <button id="btn-logout" class="btn btn-outline" style="margin-top: 10px;">Выйти из аккаунта</button>
-                </div>
-            </div>
-
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-                <h3>Мои публикации</h3>
-                <button onclick="router.navigate('edit')" class="btn btn-primary">Написать пост</button>
-            </div>
-            
-            <div id="user-posts-list"></div>
-
-            <div class="settings-card" style="background: var(--card-bg); padding: 20px; border-radius: 12px; margin-top: 30px; border: 1px solid var(--border);">
-                <h4>Расширенные инструменты</h4>
-                <div style="display: flex; align-items: center; gap: 10px;">
-                    <input type="checkbox" id="advanced-mode">
-                    <label for="advanced-mode">Разрешить генерацию встраиваемого кода (Embed)</label>
-                </div>
-            </div>
-        </section>
-
-        <!-- EDITOR -->
-        <section id="view-edit" class="view hidden">
-            <input id="post-title" class="editor-input title-input" placeholder="Заголовок">
-            <input id="post-desc" class="editor-input desc-input" style="font-size: 1.1rem; color: var(--text-muted);" placeholder="Краткое описание...">
-            <textarea id="post-content" class="content-area" placeholder="Текст истории (Markdown поддерживается)..."></textarea>
-            <button id="btn-publish" class="fab">✓</button>
-        </section>
-
-        <!-- READER -->
-        <section id="view-read" class="view hidden">
-            <article>
-                <h1 id="read-title" style="font-size: 3rem; margin-bottom: 10px;"></h1>
-                <div style="color: var(--text-muted); margin-bottom: 30px;">
-                    Автор: <span id="read-author" style="font-weight: 600;"></span> | <span id="read-date"></span>
-                </div>
-                <div id="read-content" class="markdown-content" style="font-family: 'Lora', serif; font-size: 1.25rem;"></div>
-            </article>
-
-            <div id="embed-panel" class="hidden" style="margin-top: 50px; padding: 20px; background: var(--card-bg); border-radius: 10px; border: 1px solid var(--border);">
-                <h5>Код для вставки на сайт:</h5>
-                <code id="embed-code" style="display:block; background: #222; color: #0f0; padding:15px; border-radius:5px; font-size: 0.8rem; word-break: break-all;"></code>
-                <button onclick="copyEmbed()" class="btn btn-outline" style="margin-top: 10px;">Копировать код</button>
-            </div>
-        </section>
-
-    </main>
-
-    <div id="toast">Готово!</div>
-
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, collection, addDoc, getDoc, getDocs, doc, query, where, serverTimestamp, orderBy } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-
-        const firebaseConfig = {
-            apiKey: "AIzaSyDb_xlpLYoVEkd1aObJjzvlS8-JPDjn72E",
-            authDomain: "generalapp-b4f45.firebaseapp.com",
-            databaseURL: "https://generalapp-b4f45-default-rtdb.firebaseio.com",
-            projectId: "generalapp-b4f45",
-            storageBucket: "generalapp-b4f45.firebasestorage.app",
-            messagingSenderId: "800461808673",
-            appId: "1:800461808673:web:ec6374f28c7a40ced7ef60",
-            measurementId: "G-JYL0G1J1GJ"
-        };
-
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        const db = getFirestore(app);
-        const provider = new GoogleAuthProvider();
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'gapp-test-v1';
+    <script>
+        // --- Firebase Config ---
+        const firebaseConfig = JSON.parse(__firebase_config);
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'gapp-app';
 
         let currentUser = null;
-        let captchaResult = 0;
 
-        // --- Theme Manager ---
-        window.toggleTheme = () => {
-            const current = document.body.getAttribute('data-theme');
-            const next = current === 'light' ? 'dark' : 'light';
-            document.body.setAttribute('data-theme', next);
-            document.getElementById('theme-icon').innerText = next === 'light' ? '🌙' : '☀️';
-            localStorage.setItem('theme', next);
-        };
-        if(localStorage.getItem('theme')) {
-            const saved = localStorage.getItem('theme');
-            document.body.setAttribute('data-theme', saved);
-            document.getElementById('theme-icon').innerText = saved === 'light' ? '🌙' : '☀️';
+        // --- Auth Functions ---
+        async function login() {
+            const provider = new firebase.auth.GoogleAuthProvider();
+            try {
+                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                    await auth.signInWithCustomToken(__initial_auth_token);
+                } else {
+                    await auth.signInWithPopup(provider);
+                }
+            } catch (error) {
+                console.error("Auth error", error);
+            }
         }
 
-        // --- Router ---
-        window.router = {
-            navigate: (view, id = null) => {
-                document.querySelectorAll('.view').forEach(v => v.classList.add('hidden'));
-                document.getElementById(`view-${view}`).classList.remove('hidden');
-                if(view === 'home') loadGlobalFeed();
-                if(view === 'profile') loadUserProfile();
-                if(view === 'read' && id) loadPost(id);
-                window.scrollTo(0,0);
-            }
-        };
+        function logout() {
+            auth.signOut();
+            showSection('home');
+        }
 
-        // --- Anti-Bot ---
-        document.getElementById('btn-login-trigger').onclick = () => {
-            const a = Math.floor(Math.random() * 10);
-            const b = Math.floor(Math.random() * 10);
-            captchaResult = a + b;
-            document.getElementById('captcha-question').innerText = `${a} + ${b} = ?`;
-            document.getElementById('bot-check').classList.remove('hidden');
-        };
-
-        document.getElementById('btn-verify').onclick = () => {
-            const val = parseInt(document.getElementById('captcha-answer').value);
-            if(val === captchaResult) {
-                document.getElementById('bot-check').classList.add('hidden');
-                signInWithPopup(auth, provider);
-            } else {
-                alert("Неверно! Вы робот?");
-            }
-        };
-
-        // --- Auth Observer ---
-        onAuthStateChanged(auth, (user) => {
+        auth.onAuthStateChanged(user => {
             currentUser = user;
-            document.getElementById('btn-login-trigger').classList.toggle('hidden', !!user);
-            document.getElementById('user-menu').classList.toggle('hidden', !user);
-            if(user) {
-                document.getElementById('nav-avatar').src = user.photoURL;
-                document.getElementById('prof-img').src = user.photoURL;
-                document.getElementById('prof-name').innerText = user.displayName;
-                document.getElementById('prof-email').innerText = user.email;
+            if (user) {
+                document.getElementById('btn-login').classList.add('hidden');
+                document.getElementById('btn-dashboard').classList.remove('hidden');
+                document.getElementById('btn-create').classList.remove('hidden');
+                document.getElementById('btn-logout').classList.remove('hidden');
+                document.getElementById('user-name').innerText = user.displayName;
+                loadUserPosts();
+                if(window.location.hash.startsWith('#view/')) {
+                    // Stay in viewer if direct link
+                } else {
+                    showSection('dashboard');
+                }
+            } else {
+                document.getElementById('btn-login').classList.remove('hidden');
+                document.getElementById('btn-dashboard').classList.add('hidden');
+                document.getElementById('btn-create').classList.add('hidden');
+                document.getElementById('btn-logout').classList.add('hidden');
+                document.getElementById('user-name').innerText = '';
+                checkDeepLink();
             }
         });
 
-        document.getElementById('btn-logout').onclick = () => signOut(auth).then(() => router.navigate('home'));
-
-        // --- Data Fetching ---
-        async function loadGlobalFeed() {
-            const list = document.getElementById('global-posts-list');
-            list.innerHTML = '<p>Загрузка ленты...</p>';
-            const q = query(collection(db, 'artifacts', appId, 'public', 'data', 'posts'));
-            const snap = await getDocs(q);
-            list.innerHTML = '';
-            snap.forEach(d => renderCard(d.data(), d.id, list));
+        // --- Navigation ---
+        function showSection(id) {
+            document.querySelectorAll('.section').forEach(s => s.classList.add('hidden'));
+            document.getElementById('section-' + id).classList.remove('hidden');
         }
 
-        async function loadUserProfile() {
-            const list = document.getElementById('user-posts-list');
-            list.innerHTML = '';
-            const q = query(collection(db, 'artifacts', appId, 'public', 'data', 'posts'), where('authorId', '==', currentUser.uid));
-            const snap = await getDocs(q);
-            snap.forEach(d => renderCard(d.data(), d.id, list, true));
-        }
-
-        function renderCard(p, id, target, isPrivate = false) {
-            const card = document.createElement('div');
-            card.className = 'post-card';
-            card.innerHTML = `
-                <h3 style="margin-top:0;">${p.title}</h3>
-                <p style="color: var(--text-muted); font-size: 0.9rem;">${p.description || ''}</p>
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-top:15px;">
-                    <span style="font-size:0.8rem; color:var(--text-muted)">${p.authorName}</span>
-                    <button onclick="router.navigate('read', '${id}')" class="btn btn-outline">Читать</button>
-                </div>
-            `;
-            target.appendChild(card);
-        }
-
-        async function loadPost(id) {
-            const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'posts', id);
-            const snap = await getDoc(docRef);
-            if(snap.exists()) {
-                const p = snap.data();
-                document.getElementById('read-title').innerText = p.title;
-                document.getElementById('read-author').innerText = p.authorName;
-                document.getElementById('read-date').innerText = p.createdAt ? new Date(p.createdAt.seconds*1000).toLocaleDateString() : '';
-                document.getElementById('read-content').innerHTML = marked.parse(p.content);
-                
-                // Embed Logic
-                const isAdvanced = localStorage.getItem('adv_mode') === 'true';
-                if(isAdvanced) {
-                    const currentUrl = window.location.origin + window.location.pathname;
-                    const code = `<div id="gapp-embed-${id}"></div><script src="${currentUrl}?cdn=true&id=${id}"><\/script>`;
-                    document.getElementById('embed-code').innerText = code;
-                    document.getElementById('embed-panel').classList.remove('hidden');
-                } else {
-                    document.getElementById('embed-panel').classList.add('hidden');
-                }
+        function updatePreview(url) {
+            const box = document.getElementById('preview-box');
+            if(url) {
+                box.innerHTML = `<img src="${url}" onerror="this.src='https://via.placeholder.com/800x300?text=Error+Loading+Image'">`;
+            } else {
+                box.innerHTML = 'Превью баннера';
             }
         }
 
-        // --- Publish ---
-        document.getElementById('btn-publish').onclick = async () => {
+        // --- Post Logic ---
+        async function savePost() {
+            if (!currentUser) return;
+
             const title = document.getElementById('post-title').value;
-            const desc = document.getElementById('post-desc').value;
             const content = document.getElementById('post-content').value;
-            if(!title || !content || !currentUser) return;
+            const banner = document.getElementById('post-banner').value;
+            const socials = {
+                vk: document.getElementById('social-vk').value,
+                tg: document.getElementById('social-tg').value,
+                ok: document.getElementById('social-ok').value,
+                ds: document.getElementById('social-ds').value,
+                yt: document.getElementById('social-yt').value,
+                gh: document.getElementById('social-gh').value,
+                donation: document.getElementById('social-donation').value
+            };
 
-            const d = await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'posts'), {
-                title, description: desc, content,
-                authorId: currentUser.uid, authorName: currentUser.displayName,
-                createdAt: serverTimestamp()
-            });
-            showToast();
-            router.navigate('read', d.id);
-        };
-
-        // --- Settings ---
-        document.getElementById('advanced-mode').onchange = (e) => {
-            localStorage.setItem('adv_mode', e.target.checked);
-        };
-
-        // --- Global Helpers ---
-        window.copyEmbed = () => {
-            const text = document.getElementById('embed-code').innerText;
-            const el = document.createElement('textarea');
-            el.value = text;
-            document.body.appendChild(el);
-            el.select();
-            document.execCommand('copy');
-            document.body.removeChild(el);
-            showToast();
-        };
-
-        function showToast() {
-            const t = document.getElementById('toast');
-            t.style.display = 'block';
-            setTimeout(() => t.style.display = 'none', 2000);
-        }
-
-        // --- CDN & URL HANDLER ---
-        window.onload = () => {
-            const params = new URLSearchParams(window.location.search);
-            const id = params.get('id');
-            const cdn = params.get('cdn');
-            const post = params.get('post');
-
-            // CDN Logic: If this script is called as a CDN
-            if(cdn && id) {
-                const baseUrl = window.location.origin + window.location.pathname;
-                const scriptTag = document.currentScript || document.querySelector(`script[src*="id=${id}"]`);
-                const container = document.getElementById(`gapp-embed-${id}`) || scriptTag;
-                
-                const frame = document.createElement('iframe');
-                frame.src = `${baseUrl}?post=${id}&embed=true`;
-                frame.style.width = "100%";
-                frame.style.height = "600px";
-                frame.style.border = "1px solid #ddd";
-                frame.style.borderRadius = "12px";
-                
-                if(container && container.parentNode) {
-                    container.parentNode.insertBefore(frame, container);
-                }
+            if(!title || !content) {
+                alert("Заполните заголовок и содержание!");
                 return;
             }
 
-            // Normal View Logic
-            if(post || id) {
-                router.navigate('read', post || id);
-                if(params.get('embed')) {
-                    document.querySelector('nav').style.display = 'none';
-                    document.body.style.background = 'transparent';
-                }
-            } else {
-                router.navigate('home');
+            try {
+                const postRef = await db.collection('artifacts', appId, 'public', 'data', 'posts').add({
+                    uid: currentUser.uid,
+                    author: currentUser.displayName,
+                    title,
+                    content,
+                    banner,
+                    socials,
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                });
+
+                alert("Пост опубликован!");
+                showSection('dashboard');
+                loadUserPosts();
+            } catch (e) {
+                console.error("Save error", e);
             }
-        };
+        }
+
+        async function loadUserPosts() {
+            if (!currentUser) return;
+            const container = document.getElementById('posts-list');
+            container.innerHTML = 'Загрузка...';
+
+            // Note: In real app we'd use .where('uid', '==', currentUser.uid)
+            // But per Rule 2, we fetch all and filter in memory
+            const snapshot = await db.collection('artifacts', appId, 'public', 'data', 'posts').get();
+            container.innerHTML = '';
+            
+            snapshot.docs.forEach(doc => {
+                const data = doc.data();
+                if (data.uid === currentUser.uid) {
+                    const item = document.createElement('div');
+                    item.className = 'post-item';
+                    const link = `${window.location.origin}${window.location.pathname}#view/${doc.id}`;
+                    item.innerHTML = `
+                        <div>
+                            <strong>${data.title}</strong><br>
+                            <small>${link}</small>
+                        </div>
+                        <button class="btn-outline" onclick="viewPost('${doc.id}')">Открыть</button>
+                    `;
+                    container.appendChild(item);
+                }
+            });
+        }
+
+        // --- Renderer ---
+        function parseContent(text) {
+            // Basic HTML escape
+            let html = text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+            
+            // New lines
+            html = html.replace(/\n/g, '<br>');
+
+            // [ytbe=https://...]
+            html = html.replace(/\[ytbe=(.*?)\]/g, (match, url) => {
+                const vid = url.split('v=')[1] || url.split('/').pop();
+                return `<div class="yt-container"><iframe src="https://www.youtube.com/embed/${vid}" frameborder="0" allowfullscreen></iframe></div>`;
+            });
+
+            // [URL=...]
+            html = html.replace(/\[URL=(.*?)\]/g, (match, url) => {
+                return `<a href="${url}" class="external-link" target="_blank">Перейти по ссылке: ${url}</a>`;
+            });
+
+            return html;
+        }
+
+        async function viewPost(id) {
+            window.location.hash = `view/${id}`;
+            const doc = await db.collection('artifacts', appId, 'public', 'data', 'posts').doc(id).get();
+            if (!doc.exists) {
+                alert("Пост не найден");
+                return;
+            }
+
+            const data = doc.data();
+            const container = document.getElementById('viewer-container');
+            
+            let socialsHtml = '';
+            const labels = {vk:'VK', tg:'Telegram', ok:'OK', ds:'Discord', yt:'YouTube', gh:'GitHub'};
+            for (let key in labels) {
+                if (data.socials[key]) {
+                    socialsHtml += `<a href="${data.socials[key]}" class="social-icon" target="_blank">${labels[key]}</a>`;
+                }
+            }
+
+            container.innerHTML = `
+                ${data.banner ? `<img src="${data.banner}" class="banner-img">` : ''}
+                <h1>${data.title}</h1>
+                <p style="color: #888; margin-bottom: 2rem;">Автор: ${data.author}</p>
+                <div class="main-body">${parseContent(data.content)}</div>
+                
+                <div class="footer-socials">
+                    ${socialsHtml}
+                </div>
+
+                ${data.socials.donation ? `
+                    <a href="${data.socials.donation}" class="donation-btn" target="_blank">Поддержать автора (Donation Alerts)</a>
+                ` : ''}
+            `;
+
+            showSection('viewer');
+        }
+
+        function checkDeepLink() {
+            const hash = window.location.hash;
+            if (hash.startsWith('#view/')) {
+                const id = hash.split('/')[1];
+                viewPost(id);
+            }
+        }
+
+        window.addEventListener('hashchange', checkDeepLink);
+        window.onload = checkDeepLink;
 
     </script>
 </body>
