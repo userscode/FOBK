@@ -2,194 +2,482 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hypnotic Experience</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Safe Web Messenger</title>
     <style>
-        body, html {
+        :root {
+            --primary-color: #0088cc;
+            --bg-color: #ffffff;
+            --secondary-bg: #f4f4f5;
+            --text-color: #000000;
+            --text-secondary: #707579;
+            --sent-bubble: #effdde;
+            --received-bubble: #ffffff;
+            --border-color: #dfe1e5;
+            --safe-area-bottom: env(safe-area-inset-bottom, 0px);
+        }
+
+        * {
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
             margin: 0;
             padding: 0;
-            width: 100%;
+        }
+
+        body, html {
             height: 100%;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--secondary-bg);
             overflow: hidden;
-            background-color: #000;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-family: "Arial Black", Gadget, sans-serif;
         }
 
-        /* Гипнотическая спираль на фоне */
-        #spiral-container {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100vw;
-            height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 1;
-            opacity: 0.5;
-            filter: blur(2px);
-        }
-
-        .spiral {
-            width: 200vmax;
-            height: 200vmax;
-            background: conic-gradient(
-                from 0deg,
-                #ff0000, #ffff00, #00ff00, #00ffff, #0000ff, #ff00ff, #ff0000
-            );
-            border-radius: 50%;
-            animation: rotate-spiral 2s linear infinite;
-        }
-
-        @keyframes rotate-spiral {
-            from { transform: rotate(0deg); }
-            to { transform: rotate(360deg); }
-        }
-
-        /* Основной контент */
-        #content-wrapper {
-            position: relative;
-            z-index: 10;
-            text-align: center;
-            pointer-events: none;
-        }
-
-        h1 {
-            font-size: 8vw;
-            color: white;
-            text-shadow: 5px 5px #ff0000, -5px -5px #0000ff;
-            margin: 0;
-            animation: shake 0.1s infinite, scale-text 1s ease-in-out infinite alternate;
-            user-select: none;
-        }
-
-        .face {
-            font-size: 15vw;
-            animation: bounce 0.5s infinite alternate;
-        }
-
-        /* Эффекты анимации */
-        @keyframes shake {
-            0% { transform: translate(2px, 1px) rotate(0deg); }
-            20% { transform: translate(-1px, -2px) rotate(-1deg); }
-            40% { transform: translate(-3px, 0px) rotate(1deg); }
-            60% { transform: translate(3px, 2px) rotate(0deg); }
-            80% { transform: translate(1px, -1px) rotate(1deg); }
-            100% { transform: translate(-1px, 2px) rotate(-1deg); }
-        }
-
-        @keyframes scale-text {
-            from { transform: scale(0.8); }
-            to { transform: scale(1.2); }
-        }
-
-        @keyframes bounce {
-            from { transform: translateY(-20px); }
-            to { transform: translateY(20px); }
-        }
-
-        /* Кнопка запуска */
-        #overlay {
+        /* Auth Screen */
+        #authScreen {
             position: fixed;
+            inset: 0;
+            background: white;
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .auth-card {
+            width: 100%;
+            max-width: 350px;
+        }
+
+        .logo-svg {
+            width: 80px;
+            height: 80px;
+            margin-bottom: 24px;
+            fill: var(--primary-color);
+        }
+
+        h1 { margin-bottom: 8px; font-size: 24px; }
+        p { color: var(--text-secondary); margin-bottom: 32px; font-size: 14px; }
+
+        .auth-btn {
+            width: 100%;
+            padding: 14px;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            background: white;
+            font-size: 16px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            cursor: pointer;
+            margin-bottom: 12px;
+            transition: background 0.2s;
+        }
+
+        .auth-btn:active { background: var(--secondary-bg); }
+        .auth-btn.primary {
+            background: var(--primary-color);
+            color: white;
+            border: none;
+        }
+
+        input.auth-input {
+            width: 100%;
+            padding: 14px;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            margin-bottom: 12px;
+            font-size: 16px;
+            outline: none;
+        }
+
+        /* App Container */
+        .app-container {
+            display: flex;
+            width: 100%;
+            height: 100%;
+            position: relative;
+            background: var(--bg-color);
+            display: none; /* Скрыто до авторизации */
+        }
+
+        /* Screens */
+        .screen {
+            position: absolute;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0,0,0,0.9);
+            display: flex;
+            flex-direction: column;
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            background: var(--bg-color);
+        }
+
+        .screen-chat { transform: translateX(100%); z-index: 2; }
+        .screen-chat.active { transform: translateX(0); }
+
+        header {
+            height: 60px;
+            background: var(--bg-color);
+            display: flex;
+            align-items: center;
+            padding: 0 16px;
+            border-bottom: 1px solid var(--border-color);
+            flex-shrink: 0;
+        }
+
+        .header-title { font-size: 18px; font-weight: 600; flex-grow: 1; }
+
+        .chat-list { flex-grow: 1; overflow-y: auto; }
+        .chat-item {
+            display: flex;
+            padding: 12px 16px;
+            align-items: center;
+            border-bottom: 0.5px solid var(--border-color);
+        }
+
+        .avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: #ccc;
+            margin-right: 12px;
             display: flex;
             align-items: center;
             justify-content: center;
-            z-index: 100;
-            cursor: pointer;
-        }
-
-        .start-msg {
             color: white;
-            font-size: 2rem;
-            border: 4px solid white;
-            padding: 20px 40px;
-            border-radius: 50px;
-            transition: all 0.3s;
+            font-weight: bold;
+            overflow: hidden;
         }
 
-        .start-msg:hover {
-            background: white;
-            color: black;
+        .avatar img { width: 100%; height: 100%; object-fit: cover; }
+
+        .messages-container {
+            flex-grow: 1;
+            overflow-y: auto;
+            padding: 16px;
+            background: #e7ebf0;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
         }
 
-        /* Имитация движения окна внутри страницы */
-        .window-mimic {
-            position: absolute;
-            border: 10px solid #fff;
-            background: #000;
-            padding: 20px;
-            pointer-events: none;
-            box-shadow: 0 0 50px rgba(255,255,255,0.5);
+        .message {
+            max-width: 80%;
+            padding: 8px 12px;
+            border-radius: 12px;
+            font-size: 15px;
+            position: relative;
+            box-shadow: 0 1px 1px rgba(0,0,0,0.1);
         }
+
+        .message.sent { align-self: flex-end; background: var(--sent-bubble); }
+        .message.received { align-self: flex-start; background: var(--received-bubble); }
+
+        .input-area {
+            padding: 8px 12px calc(8px + var(--safe-area-bottom));
+            background: var(--bg-color);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .message-input {
+            flex-grow: 1;
+            border: none;
+            background: var(--secondary-bg);
+            padding: 10px 16px;
+            border-radius: 20px;
+            font-size: 16px;
+            outline: none;
+        }
+
+        .icon-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 4px;
+            display: flex;
+            color: var(--primary-color);
+        }
+
+        #recaptcha-container { margin-bottom: 10px; }
+        .hidden { display: none !important; }
     </style>
 </head>
 <body>
 
-    <div id="overlay" onclick="startEffects()">
-        <div class="start-msg">НАЖМИ, ЧТОБЫ ВОЙТИ</div>
+    <!-- Экран входа -->
+    <div id="authScreen">
+        <div class="auth-card">
+            <svg class="logo-svg" viewBox="0 0 24 24">
+                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.39l-2.03 8.46c-.14.63-.51.78-1.04.48l-3.1-2.28-1.5 1.45c-.17.17-.31.31-.63.31l.22-3.16 5.76-5.21c.25-.22-.05-.35-.38-.13l-7.13 4.49-3.06-.96c-.66-.21-.68-.66.14-.98l11.97-4.61c.55-.2 1.04.14.88.94z"/>
+            </svg>
+            <h1>Добро пожаловать</h1>
+            <p>Войдите, чтобы начать общение</p>
+
+            <!-- Вход по номеру -->
+            <div id="phoneStep">
+                <input type="tel" id="phoneNumber" class="auth-input" placeholder="+7 900 000 00 00">
+                <div id="recaptcha-container"></div>
+                <button class="auth-btn primary" onclick="handlePhoneAuth()">
+                    Продолжить
+                </button>
+            </div>
+
+            <!-- Подтверждение кода -->
+            <div id="codeStep" class="hidden">
+                <input type="text" id="verificationCode" class="auth-input" placeholder="Код из СМС">
+                <button class="auth-btn primary" onclick="handleVerifyCode()">
+                    Подтвердить
+                </button>
+            </div>
+
+            <div style="margin: 16px 0; color: #ccc;">или</div>
+
+            <button class="auth-btn" onclick="handleGoogleAuth()">
+                <svg width="20" height="20" viewBox="0 0 24 24">
+                    <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+                    <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+                    <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" fill="#FBBC05"/>
+                    <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+                </svg>
+                Войти через Google
+            </button>
+        </div>
     </div>
 
-    <div id="spiral-container" style="display: none;">
-        <div class="spiral"></div>
+    <!-- Основное приложение -->
+    <div class="app-container" id="appMain">
+        <div class="screen screen-main">
+            <header>
+                <div class="header-title">Сообщения</div>
+                <button class="icon-btn" onclick="signOutUser()">
+                    <svg class="icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/>
+                    </svg>
+                </button>
+            </header>
+            <div class="chat-list" id="chatList">
+                <!-- Здесь будут чаты -->
+            </div>
+        </div>
+
+        <div class="screen screen-chat" id="screenChat">
+            <header>
+                <button class="icon-btn" onclick="closeChat()">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M19 12H5M12 19l-7-7 7-7"/>
+                    </svg>
+                </button>
+                <div class="avatar" id="activeChatAvatar" style="width:36px; height:36px; margin: 0 10px;"></div>
+                <div class="header-title" id="activeChatName">Чат</div>
+            </header>
+            <div class="messages-container" id="messagesContainer"></div>
+            <div class="input-area">
+                <input type="text" class="message-input" id="messageInput" placeholder="Сообщение">
+                <button class="icon-btn" id="sendBtn">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
+                    </svg>
+                </button>
+            </div>
+        </div>
     </div>
 
-    <div id="content-wrapper" style="display: none;">
-        <div class="face">🤡</div>
-        <h1>YOU ARE AN IDIOT!</h1>
-    </div>
+    <!-- Firebase Scripts -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import {
+            getAuth,
+            signInWithPopup,
+            GoogleAuthProvider,
+            onAuthStateChanged,
+            signOut,
+            RecaptchaVerifier,
+            signInWithPhoneNumber
+        } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import {
+            getFirestore,
+            collection,
+            query,
+            onSnapshot,
+            addDoc,
+            serverTimestamp,
+            orderBy,
+            doc,
+            setDoc
+        } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-    <script>
-        function startEffects() {
-            document.getElementById('overlay').style.display = 'none';
-            document.getElementById('spiral-container').style.display = 'flex';
-            document.getElementById('content-wrapper').style.display = 'block';
-            
-            // Запуск мерцания фона
-            setInterval(() => {
-                document.body.style.backgroundColor = 
-                    document.body.style.backgroundColor === 'white' ? 'black' : 'white';
-            }, 50);
+        // Firebase Config
+        const firebaseConfig = {
+            apiKey: "AIzaSyDb_xlpLYoVEkd1aObJjzvlS8-JPDjn72E",
+            authDomain: "generalapp-b4f45.firebaseapp.com",
+            databaseURL: "https://generalapp-b4f45-default-rtdb.firebaseio.com",
+            projectId: "generalapp-b4f45",
+            storageBucket: "generalapp-b4f45.firebasestorage.app",
+            messagingSenderId: "800461808673",
+            appId: "1:800461808673:web:ec6374f28c7a40ced7ef60",
+            measurementId: "G-JYL0G1J1GJ"
+        };
 
-            // Создание "плавающих окон" внутри страницы
-            for(let i = 0; i < 5; i++) {
-                createFloatingWindow();
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        const appId = "generalapp-b4f45";
+
+        let currentUser = null;
+        let confirmationResult = null;
+        let currentChatId = 'global_chat'; // Для примера используем один общий чат
+
+        // --- AUTH LOGIC ---
+
+        // Google Auth
+        window.handleGoogleAuth = async () => {
+            const provider = new GoogleAuthProvider();
+            try {
+                await signInWithPopup(auth, provider);
+            } catch (error) {
+                console.error("Google Auth Error", error);
+                alert("Ошибка входа через Google");
+            }
+        };
+
+        // Phone Auth
+        window.handlePhoneAuth = async () => {
+            const phoneNumber = document.getElementById('phoneNumber').value;
+            if (!phoneNumber) return alert("Введите номер");
+
+            window.recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
+                'size': 'invisible'
+            });
+
+            try {
+                confirmationResult = await signInWithPhoneNumber(auth, phoneNumber, window.recaptchaVerifier);
+                document.getElementById('phoneStep').classList.add('hidden');
+                document.getElementById('codeStep').classList.remove('hidden');
+            } catch (error) {
+                console.error("SMS Error", error);
+                alert("Ошибка отправки СМС");
+            }
+        };
+
+        window.handleVerifyCode = async () => {
+            const code = document.getElementById('verificationCode').value;
+            try {
+                await confirmationResult.confirm(code);
+            } catch (error) {
+                alert("Неверный код");
+            }
+        };
+
+        window.signOutUser = () => signOut(auth);
+
+        // Auth State Observer
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                currentUser = user;
+                document.getElementById('authScreen').style.display = 'none';
+                document.getElementById('appMain').style.display = 'flex';
+                initApp();
+            } else {
+                currentUser = null;
+                document.getElementById('authScreen').style.display = 'flex';
+                document.getElementById('appMain').style.display = 'none';
+            }
+        });
+
+        // --- APP LOGIC ---
+
+        function initApp() {
+            loadChats();
+        }
+
+        function loadChats() {
+            // В реальном приложении мы бы подгружали список диалогов.
+            // Здесь создадим один "Глобальный чат".
+            const chatList = document.getElementById('chatList');
+            chatList.innerHTML = `
+                <div class="chat-item" onclick="openChat('global_chat', 'Общий чат')">
+                    <div class="avatar" style="background: var(--primary-color)">G</div>
+                    <div class="chat-info">
+                        <div class="chat-name">Общий чат</div>
+                        <div style="font-size: 13px; color: var(--text-secondary)">Нажмите, чтобы войти</div>
+                    </div>
+                </div>
+            `;
+        }
+
+        window.openChat = (id, name) => {
+            currentChatId = id;
+            document.getElementById('activeChatName').innerText = name;
+            document.getElementById('activeChatAvatar').innerText = name[0];
+            document.getElementById('screenChat').classList.add('active');
+            listenToMessages(id);
+        };
+
+        window.closeChat = () => {
+            document.getElementById('screenChat').classList.remove('active');
+        };
+
+        function listenToMessages(chatId) {
+            const q = query(
+                collection(db, 'artifacts', appId, 'public', 'data', 'messages'),
+                orderBy('createdAt', 'asc')
+            );
+
+            onSnapshot(q, (snapshot) => {
+                const container = document.getElementById('messagesContainer');
+                container.innerHTML = '';
+                snapshot.forEach((doc) => {
+                    const data = doc.data();
+                    const isMe = data.uid === currentUser.uid;
+                    const msgDiv = document.createElement('div');
+                    msgDiv.className = `message ${isMe ? 'sent' : 'received'}`;
+                    msgDiv.innerHTML = `
+                        <div style="font-size: 11px; opacity: 0.7; margin-bottom: 2px;">${data.userName || 'User'}</div>
+                        ${escapeHtml(data.text)}
+                    `;
+                    container.appendChild(msgDiv);
+                });
+                container.scrollTop = container.scrollHeight;
+            }, (err) => console.error("Firestore Error", err));
+        }
+
+        async function sendMessage() {
+            const input = document.getElementById('messageInput');
+            const text = input.value.trim();
+            if (!text || !currentUser) return;
+
+            try {
+                await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'messages'), {
+                    text: text,
+                    uid: currentUser.uid,
+                    userName: currentUser.displayName || currentUser.phoneNumber || 'Аноним',
+                    createdAt: serverTimestamp()
+                });
+                input.value = '';
+            } catch (e) {
+                console.error("Send Error", e);
             }
         }
 
-        function createFloatingWindow() {
-            const win = document.createElement('div');
-            win.className = 'window-mimic';
-            win.innerHTML = '<div style="font-size:3rem">☺</div><div style="color:white">IDIOT</div>';
-            document.body.appendChild(win);
-
-            let x = Math.random() * window.innerWidth;
-            let y = Math.random() * window.innerHeight;
-            let dx = (Math.random() - 0.5) * 15;
-            let dy = (Math.random() - 0.5) * 15;
-
-            function animate() {
-                x += dx;
-                y += dy;
-
-                if (x + 150 > window.innerWidth || x < 0) dx *= -1;
-                if (y + 100 > window.innerHeight || y < 0) dy *= -1;
-
-                win.style.left = x + 'px';
-                win.style.top = y + 'px';
-                win.style.transform = `rotate(${x/10}deg)`;
-
-                requestAnimationFrame(animate);
-            }
-            animate();
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
         }
+
+        document.getElementById('sendBtn').onclick = sendMessage;
+        document.getElementById('messageInput').onkeypress = (e) => {
+            if (e.key === 'Enter') sendMessage();
+        };
+
     </script>
 </body>
 </html>
