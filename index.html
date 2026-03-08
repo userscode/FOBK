@@ -3,29 +3,42 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Telegraph Clone Pro</title>
+    <title>gapp.test | Stories</title>
     
     <!-- OpenGraph -->
     <meta property="og:type" content="article">
-    <meta id="og-title" property="og:title" content="Telegraph Clone Pro">
+    <meta id="og-title" property="og:title" content="gapp.test">
     
     <!-- Marked.js for Markdown -->
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,700;1,400&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
 
     <style>
-        /* Base Styles - Custom CSS (No Tailwind) */
+        /* CSS Variables for Themes */
         :root {
-            --primary: #007bff;
-            --primary-hover: #0056b3;
             --bg: #ffffff;
+            --nav-bg: rgba(255, 255, 255, 0.8);
             --text: #1a1a1a;
             --text-muted: #666666;
             --border: #eeeeee;
+            --primary: #007bff;
+            --primary-hover: #0056b3;
             --card-bg: #fdfdfd;
+            --input-bg: #ffffff;
         }
 
-        * { box-sizing: border-box; }
+        [data-theme="dark"] {
+            --bg: #121212;
+            --nav-bg: rgba(18, 18, 18, 0.8);
+            --text: #e0e0e0;
+            --text-muted: #a0a0a0;
+            --border: #2d2d2d;
+            --primary: #3793ff;
+            --card-bg: #1e1e1e;
+            --input-bg: #1a1a1a;
+        }
+
+        * { box-sizing: border-box; transition: background-color 0.3s, color 0.3s; }
         body {
             margin: 0;
             font-family: 'Inter', sans-serif;
@@ -34,60 +47,50 @@
             line-height: 1.5;
         }
 
-        .container {
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 0 20px;
-        }
+        .container { max-width: 800px; margin: 0 auto; padding: 0 20px; }
 
         /* Navigation */
         nav {
-            background: rgba(255, 255, 255, 0.9);
+            background: var(--nav-bg);
             backdrop-filter: blur(10px);
             border-bottom: 1px solid var(--border);
-            padding: 15px 0;
+            padding: 12px 0;
             position: sticky;
             top: 0;
             z-index: 100;
         }
 
-        .nav-content {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .logo {
-            font-size: 1.2rem;
-            font-weight: 700;
-            cursor: pointer;
-            text-decoration: none;
-            color: var(--text);
-        }
-
+        .nav-content { display: flex; justify-content: space-between; align-items: center; }
+        .logo { font-size: 1.3rem; font-weight: 700; cursor: pointer; text-decoration: none; color: var(--text); }
         .logo span { color: var(--primary); }
 
+        .nav-actions { display: flex; align-items: center; gap: 15px; }
+
         .btn {
-            padding: 8px 20px;
+            padding: 8px 18px;
             border-radius: 20px;
             border: none;
             cursor: pointer;
             font-weight: 500;
-            transition: 0.2s;
             font-size: 0.9rem;
         }
 
         .btn-primary { background: var(--primary); color: white; }
-        .btn-primary:hover { background: var(--primary-hover); }
-        .btn-outline { background: transparent; border: 1px solid var(--border); color: var(--text-muted); }
+        .btn-outline { background: transparent; border: 1px solid var(--border); color: var(--text); }
 
-        /* User Info */
-        .user-block { display: flex; align-items: center; gap: 10px; }
-        .avatar { width: 32px; height: 32px; border-radius: 50%; border: 1px solid var(--border); }
+        /* Theme Toggle */
+        .theme-toggle {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 1.2rem;
+            color: var(--text);
+            padding: 5px;
+        }
 
         /* Views */
         .view { padding: 40px 0; }
-        .hidden { display: none; }
+        .hidden { display: none !important; }
 
         /* Editor */
         .editor-input {
@@ -96,94 +99,110 @@
             outline: none;
             background: transparent;
             margin-bottom: 20px;
+            color: var(--text);
         }
         .title-input { font-size: 2.5rem; font-weight: 700; }
-        .desc-input { font-size: 1.1rem; color: var(--text-muted); }
         .content-area {
             width: 100%;
-            min-height: 400px;
+            min-height: 450px;
             font-family: 'Lora', serif;
             font-size: 1.2rem;
             border: none;
             outline: none;
             resize: none;
+            color: var(--text);
+            background: transparent;
         }
 
-        /* Reader */
-        .reader h1 { font-size: 3rem; margin-bottom: 10px; }
-        .meta { color: var(--text-muted); font-size: 0.9rem; margin-bottom: 30px; }
-        .markdown-content { font-family: 'Lora', serif; font-size: 1.25rem; }
-
-        /* Settings Card */
-        .settings-card {
-            background: #f8f9fa;
-            padding: 20px;
-            border-radius: 12px;
-            margin-top: 40px;
-            border: 1px solid var(--border);
-        }
-
-        .toggle-container {
+        /* Profile & Settings */
+        .profile-header {
             display: flex;
             align-items: center;
-            gap: 10px;
-            margin-bottom: 15px;
+            gap: 20px;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid var(--border);
         }
+        .profile-avatar { width: 80px; height: 80px; border-radius: 50%; }
 
-        /* Post Card */
         .post-card {
             border: 1px solid var(--border);
             padding: 20px;
             border-radius: 12px;
-            margin-bottom: 20px;
+            margin-bottom: 15px;
             background: var(--card-bg);
-            transition: transform 0.2s;
         }
-        .post-card:hover { transform: translateY(-2px); border-color: var(--primary); }
-        .post-card h3 { margin: 0 0 10px 0; }
-        .post-actions { margin-top: 15px; display: flex; gap: 10px; }
 
-        /* Toast Notification */
+        /* Modal / Anti-Bot */
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+        .modal {
+            background: var(--bg);
+            padding: 30px;
+            border-radius: 15px;
+            max-width: 400px;
+            width: 90%;
+            text-align: center;
+        }
+
+        /* Toast */
         #toast {
             position: fixed;
-            bottom: 20px;
+            bottom: 25px;
             left: 50%;
             transform: translateX(-50%);
             background: #333;
             color: white;
-            padding: 10px 20px;
-            border-radius: 5px;
+            padding: 10px 25px;
+            border-radius: 30px;
             display: none;
-            z-index: 1000;
+            z-index: 1100;
         }
 
-        /* Floating Publish */
         .fab {
             position: fixed;
-            bottom: 30px;
-            right: 30px;
-            width: 60px;
-            height: 60px;
+            bottom: 30px; right: 30px;
+            width: 60px; height: 60px;
             border-radius: 30px;
             background: var(--primary);
-            color: white;
-            border: none;
-            box-shadow: 0 4px 15px rgba(0,123,255,0.3);
-            cursor: pointer;
-            font-size: 24px;
+            color: white; border: none;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            cursor: pointer; font-size: 24px;
         }
     </style>
 </head>
-<body>
+<body data-theme="light">
+
+    <!-- Anti-Bot Verification -->
+    <div id="bot-check" class="modal-overlay hidden">
+        <div class="modal">
+            <h3>Проверка безопасности</h3>
+            <p>Чтобы продолжить, введите результат:</p>
+            <div id="captcha-question" style="font-size: 1.5rem; font-weight: bold; margin: 15px 0;"></div>
+            <input type="number" id="captcha-answer" style="padding: 10px; border: 1px solid var(--border); border-radius: 5px; width: 80px; text-align: center;">
+            <div style="margin-top: 20px;">
+                <button id="btn-verify" class="btn btn-primary">Проверить</button>
+            </div>
+        </div>
+    </div>
 
     <nav>
         <div class="container nav-content">
-            <a href="#" class="logo" onclick="router.navigate('home')">Telegra.ph<span>Pro</span></a>
-            <div id="auth-section">
-                <button id="btn-login" class="btn btn-primary">Войти через Google</button>
-                <div id="user-info" class="hidden user-block">
-                    <img id="user-photo" class="avatar">
-                    <button id="btn-logout" class="btn btn-outline">Выйти</button>
+            <a href="#" class="logo" onclick="router.navigate('home')">gapp<span>.test</span></a>
+            <div class="nav-actions">
+                <button class="theme-toggle" onclick="toggleTheme()" id="theme-icon">🌙</button>
+                <div id="auth-section">
+                    <button id="btn-login-trigger" class="btn btn-primary">Войти</button>
+                    <div id="user-menu" class="hidden" style="display: flex; align-items: center; gap: 10px;">
+                        <img id="nav-avatar" class="profile-avatar" style="width: 32px; height: 32px; cursor: pointer;" onclick="router.navigate('profile')">
+                    </div>
                 </div>
             </div>
         </div>
@@ -191,61 +210,72 @@
 
     <main class="container">
         
-        <!-- HOME VIEW -->
+        <!-- HOME: Feed of all posts -->
         <section id="view-home" class="view">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
-                <h2>Ваши записи</h2>
-                <button onclick="router.navigate('edit')" class="btn btn-primary">Создать пост</button>
+            <h2 id="feed-title">Последние истории</h2>
+            <div id="global-posts-list"></div>
+        </section>
+
+        <!-- PROFILE / PRIVATE CABINET -->
+        <section id="view-profile" class="view hidden">
+            <div class="profile-header">
+                <img id="prof-img" class="profile-avatar" src="">
+                <div>
+                    <h2 id="prof-name" style="margin: 0;"></h2>
+                    <p id="prof-email" style="color: var(--text-muted); margin: 5px 0;"></p>
+                    <button id="btn-logout" class="btn btn-outline" style="margin-top: 10px;">Выйти из аккаунта</button>
+                </div>
             </div>
 
-            <div id="posts-list">
-                <p style="color: #999; font-style: italic;">Загрузка...</p>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h3>Мои публикации</h3>
+                <button onclick="router.navigate('edit')" class="btn btn-primary">Написать пост</button>
             </div>
+            
+            <div id="user-posts-list"></div>
 
-            <!-- Settings / Account -->
-            <div id="account-settings" class="settings-card hidden">
-                <h4>Настройки аккаунта</h4>
-                <div class="toggle-container">
+            <div class="settings-card" style="background: var(--card-bg); padding: 20px; border-radius: 12px; margin-top: 30px; border: 1px solid var(--border);">
+                <h4>Расширенные инструменты</h4>
+                <div style="display: flex; align-items: center; gap: 10px;">
                     <input type="checkbox" id="advanced-mode">
-                    <label for="advanced-mode">Расширенный режим (Copy HTML/Embed)</label>
+                    <label for="advanced-mode">Разрешить генерацию встраиваемого кода (Embed)</label>
                 </div>
             </div>
         </section>
 
-        <!-- EDITOR VIEW -->
+        <!-- EDITOR -->
         <section id="view-edit" class="view hidden">
             <input id="post-title" class="editor-input title-input" placeholder="Заголовок">
-            <input id="post-desc" class="editor-input desc-input" placeholder="Краткое описание для соцсетей...">
-            <textarea id="post-content" class="content-area" placeholder="Напишите вашу историю (Markdown поддерживается)..."></textarea>
-            <button id="btn-publish" class="fab">+</button>
+            <input id="post-desc" class="editor-input desc-input" style="font-size: 1.1rem; color: var(--text-muted);" placeholder="Краткое описание...">
+            <textarea id="post-content" class="content-area" placeholder="Текст истории (Markdown поддерживается)..."></textarea>
+            <button id="btn-publish" class="fab">✓</button>
         </section>
 
-        <!-- READER VIEW -->
+        <!-- READER -->
         <section id="view-read" class="view hidden">
-            <article class="reader">
-                <h1 id="read-title"></h1>
-                <div class="meta">
-                    Автор: <span id="read-author"></span> | <span id="read-date"></span>
+            <article>
+                <h1 id="read-title" style="font-size: 3rem; margin-bottom: 10px;"></h1>
+                <div style="color: var(--text-muted); margin-bottom: 30px;">
+                    Автор: <span id="read-author" style="font-weight: 600;"></span> | <span id="read-date"></span>
                 </div>
-                <div id="read-content" class="markdown-content"></div>
+                <div id="read-content" class="markdown-content" style="font-family: 'Lora', serif; font-size: 1.25rem;"></div>
             </article>
 
-            <div id="advanced-tools" class="settings-card hidden">
-                <h5>Инструменты встраивания</h5>
-                <p style="font-size: 0.8rem; color: #666;">Используйте этот код для вставки на ваш сайт через наш CDN-загрузчик:</p>
-                <code id="embed-code" style="display:block; background:#eee; padding:10px; border-radius:5px; font-size:0.75rem; word-break: break-all;"></code>
-                <button onclick="copyEmbed()" class="btn btn-outline" style="margin-top:10px;">Копировать HTML</button>
+            <div id="embed-panel" class="hidden" style="margin-top: 50px; padding: 20px; background: var(--card-bg); border-radius: 10px; border: 1px solid var(--border);">
+                <h5>Код для вставки на сайт:</h5>
+                <code id="embed-code" style="display:block; background: #222; color: #0f0; padding:15px; border-radius:5px; font-size: 0.8rem; word-break: break-all;"></code>
+                <button onclick="copyEmbed()" class="btn btn-outline" style="margin-top: 10px;">Копировать код</button>
             </div>
         </section>
 
     </main>
 
-    <div id="toast">Скопировано в буфер обмена!</div>
+    <div id="toast">Готово!</div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, collection, addDoc, getDoc, getDocs, doc, query, where, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, getDoc, getDocs, doc, query, where, serverTimestamp, orderBy } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyDb_xlpLYoVEkd1aObJjzvlS8-JPDjn72E",
@@ -262,153 +292,194 @@
         const auth = getAuth(app);
         const db = getFirestore(app);
         const provider = new GoogleAuthProvider();
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'telegraph-pro';
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'gapp-test-v1';
 
         let currentUser = null;
-        let isAdvancedMode = localStorage.getItem('adv_mode') === 'true';
+        let captchaResult = 0;
+
+        // --- Theme Manager ---
+        window.toggleTheme = () => {
+            const current = document.body.getAttribute('data-theme');
+            const next = current === 'light' ? 'dark' : 'light';
+            document.body.setAttribute('data-theme', next);
+            document.getElementById('theme-icon').innerText = next === 'light' ? '🌙' : '☀️';
+            localStorage.setItem('theme', next);
+        };
+        if(localStorage.getItem('theme')) {
+            const saved = localStorage.getItem('theme');
+            document.body.setAttribute('data-theme', saved);
+            document.getElementById('theme-icon').innerText = saved === 'light' ? '🌙' : '☀️';
+        }
 
         // --- Router ---
         window.router = {
             navigate: (view, id = null) => {
-                document.querySelectorAll('.view').forEach(el => el.classList.add('hidden'));
+                document.querySelectorAll('.view').forEach(v => v.classList.add('hidden'));
                 document.getElementById(`view-${view}`).classList.remove('hidden');
-                if (view === 'home') {
-                    loadPosts();
-                    document.getElementById('account-settings').classList.toggle('hidden', !currentUser);
-                    document.getElementById('advanced-mode').checked = isAdvancedMode;
-                }
-                if (view === 'read' && id) loadPostContent(id);
+                if(view === 'home') loadGlobalFeed();
+                if(view === 'profile') loadUserProfile();
+                if(view === 'read' && id) loadPost(id);
                 window.scrollTo(0,0);
             }
         };
 
-        // --- Auth ---
-        document.getElementById('btn-login').onclick = () => signInWithPopup(auth, provider);
-        document.getElementById('btn-logout').onclick = () => signOut(auth);
-        
-        document.getElementById('advanced-mode').onchange = (e) => {
-            isAdvancedMode = e.target.checked;
-            localStorage.setItem('adv_mode', isAdvancedMode);
-            loadPosts(); // Refresh list to show/hide copy buttons
+        // --- Anti-Bot ---
+        document.getElementById('btn-login-trigger').onclick = () => {
+            const a = Math.floor(Math.random() * 10);
+            const b = Math.floor(Math.random() * 10);
+            captchaResult = a + b;
+            document.getElementById('captcha-question').innerText = `${a} + ${b} = ?`;
+            document.getElementById('bot-check').classList.remove('hidden');
         };
 
+        document.getElementById('btn-verify').onclick = () => {
+            const val = parseInt(document.getElementById('captcha-answer').value);
+            if(val === captchaResult) {
+                document.getElementById('bot-check').classList.add('hidden');
+                signInWithPopup(auth, provider);
+            } else {
+                alert("Неверно! Вы робот?");
+            }
+        };
+
+        // --- Auth Observer ---
         onAuthStateChanged(auth, (user) => {
             currentUser = user;
-            document.getElementById('btn-login').classList.toggle('hidden', !!user);
-            document.getElementById('user-info').classList.toggle('hidden', !user);
-            if (user) {
-                document.getElementById('user-photo').src = user.photoURL;
-                router.navigate('home');
+            document.getElementById('btn-login-trigger').classList.toggle('hidden', !!user);
+            document.getElementById('user-menu').classList.toggle('hidden', !user);
+            if(user) {
+                document.getElementById('nav-avatar').src = user.photoURL;
+                document.getElementById('prof-img').src = user.photoURL;
+                document.getElementById('prof-name').innerText = user.displayName;
+                document.getElementById('prof-email').innerText = user.email;
             }
         });
 
-        // --- Post Logic ---
-        async function loadPosts() {
-            const list = document.getElementById('posts-list');
-            if (!currentUser) {
-                list.innerHTML = '<p>Войдите, чтобы управлять своими публикациями.</p>';
-                return;
-            }
+        document.getElementById('btn-logout').onclick = () => signOut(auth).then(() => router.navigate('home'));
 
-            const q = query(collection(db, 'artifacts', appId, 'public', 'data', 'posts'), where('authorId', '==', currentUser.uid));
+        // --- Data Fetching ---
+        async function loadGlobalFeed() {
+            const list = document.getElementById('global-posts-list');
+            list.innerHTML = '<p>Загрузка ленты...</p>';
+            const q = query(collection(db, 'artifacts', appId, 'public', 'data', 'posts'));
             const snap = await getDocs(q);
             list.innerHTML = '';
-            
-            snap.forEach(d => {
-                const p = d.data();
-                const card = document.createElement('div');
-                card.className = 'post-card';
-                card.innerHTML = `
-                    <h3>${p.title}</h3>
-                    <p style="color:#666; font-size:0.9rem;">${p.description || ''}</p>
-                    <div class="post-actions">
-                        <button onclick="router.navigate('read', '${d.id}')" class="btn btn-outline">Открыть</button>
-                        ${isAdvancedMode ? `<button onclick="copyPostHtml('${d.id}')" class="btn btn-primary">Copy HTML Code</button>` : ''}
-                    </div>
-                `;
-                list.appendChild(card);
-            });
+            snap.forEach(d => renderCard(d.data(), d.id, list));
         }
 
-        async function loadPostContent(id) {
+        async function loadUserProfile() {
+            const list = document.getElementById('user-posts-list');
+            list.innerHTML = '';
+            const q = query(collection(db, 'artifacts', appId, 'public', 'data', 'posts'), where('authorId', '==', currentUser.uid));
+            const snap = await getDocs(q);
+            snap.forEach(d => renderCard(d.data(), d.id, list, true));
+        }
+
+        function renderCard(p, id, target, isPrivate = false) {
+            const card = document.createElement('div');
+            card.className = 'post-card';
+            card.innerHTML = `
+                <h3 style="margin-top:0;">${p.title}</h3>
+                <p style="color: var(--text-muted); font-size: 0.9rem;">${p.description || ''}</p>
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-top:15px;">
+                    <span style="font-size:0.8rem; color:var(--text-muted)">${p.authorName}</span>
+                    <button onclick="router.navigate('read', '${id}')" class="btn btn-outline">Читать</button>
+                </div>
+            `;
+            target.appendChild(card);
+        }
+
+        async function loadPost(id) {
             const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'posts', id);
-            const docSnap = await getDoc(docRef);
-            if (docSnap.exists()) {
-                const p = docSnap.data();
+            const snap = await getDoc(docRef);
+            if(snap.exists()) {
+                const p = snap.data();
                 document.getElementById('read-title').innerText = p.title;
                 document.getElementById('read-author').innerText = p.authorName;
                 document.getElementById('read-date').innerText = p.createdAt ? new Date(p.createdAt.seconds*1000).toLocaleDateString() : '';
                 document.getElementById('read-content').innerHTML = marked.parse(p.content);
                 
-                // Embed tools
-                const currentUrl = window.location.href.split('?')[0];
-                const embedSnippet = `<div id="tg-post-${id}"></div><script src="${currentUrl}?cdn=true&id=${id}"><\/script>`;
-                document.getElementById('embed-code').innerText = embedSnippet;
-                document.getElementById('advanced-tools').classList.toggle('hidden', !isAdvancedMode);
+                // Embed Logic
+                const isAdvanced = localStorage.getItem('adv_mode') === 'true';
+                if(isAdvanced) {
+                    const currentUrl = window.location.origin + window.location.pathname;
+                    const code = `<div id="gapp-embed-${id}"></div><script src="${currentUrl}?cdn=true&id=${id}"><\/script>`;
+                    document.getElementById('embed-code').innerText = code;
+                    document.getElementById('embed-panel').classList.remove('hidden');
+                } else {
+                    document.getElementById('embed-panel').classList.add('hidden');
+                }
             }
         }
 
+        // --- Publish ---
         document.getElementById('btn-publish').onclick = async () => {
             const title = document.getElementById('post-title').value;
             const desc = document.getElementById('post-desc').value;
             const content = document.getElementById('post-content').value;
-            if(!title || !content) return;
+            if(!title || !content || !currentUser) return;
 
-            const docRef = await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'posts'), {
+            const d = await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'posts'), {
                 title, description: desc, content,
                 authorId: currentUser.uid, authorName: currentUser.displayName,
                 createdAt: serverTimestamp()
             });
-            router.navigate('read', docRef.id);
+            showToast();
+            router.navigate('read', d.id);
         };
 
-        // --- Helper: Copy Tools ---
-        window.copyPostHtml = (id) => {
-            const currentUrl = window.location.href.split('?')[0];
-            const code = `<div id="tg-post-${id}"></div><script src="${currentUrl}?cdn=true&id=${id}"><\/script>`;
-            copyToClipboard(code);
+        // --- Settings ---
+        document.getElementById('advanced-mode').onchange = (e) => {
+            localStorage.setItem('adv_mode', e.target.checked);
         };
 
+        // --- Global Helpers ---
         window.copyEmbed = () => {
-            copyToClipboard(document.getElementById('embed-code').innerText);
-        };
-
-        function copyToClipboard(text) {
+            const text = document.getElementById('embed-code').innerText;
             const el = document.createElement('textarea');
             el.value = text;
             document.body.appendChild(el);
             el.select();
             document.execCommand('copy');
             document.body.removeChild(el);
-            
-            const toast = document.getElementById('toast');
-            toast.style.display = 'block';
-            setTimeout(() => toast.style.display = 'none', 2000);
+            showToast();
+        };
+
+        function showToast() {
+            const t = document.getElementById('toast');
+            t.style.display = 'block';
+            setTimeout(() => t.style.display = 'none', 2000);
         }
 
-        // --- CDN / Iframe Handler ---
+        // --- CDN & URL HANDLER ---
         window.onload = () => {
             const params = new URLSearchParams(window.location.search);
-            const isCdn = params.get('cdn');
             const id = params.get('id');
-            const postView = params.get('post');
+            const cdn = params.get('cdn');
+            const post = params.get('post');
 
-            // If it's a CDN request, we act as a script that injects an iframe
-            if (isCdn && id) {
-                const currentUrl = window.location.href.split('?')[0];
-                const target = document.currentScript ? document.currentScript : document.getElementById(`tg-post-${id}`);
-                const iframe = document.createElement('iframe');
-                iframe.src = `${currentUrl}?post=${id}&embed=true`;
-                iframe.style.width = "100%";
-                iframe.style.height = "600px";
-                iframe.style.border = "1px solid #eee";
-                iframe.style.borderRadius = "10px";
-                if(target.parentNode) target.parentNode.insertBefore(iframe, target);
+            // CDN Logic: If this script is called as a CDN
+            if(cdn && id) {
+                const baseUrl = window.location.origin + window.location.pathname;
+                const scriptTag = document.currentScript || document.querySelector(`script[src*="id=${id}"]`);
+                const container = document.getElementById(`gapp-embed-${id}`) || scriptTag;
+                
+                const frame = document.createElement('iframe');
+                frame.src = `${baseUrl}?post=${id}&embed=true`;
+                frame.style.width = "100%";
+                frame.style.height = "600px";
+                frame.style.border = "1px solid #ddd";
+                frame.style.borderRadius = "12px";
+                
+                if(container && container.parentNode) {
+                    container.parentNode.insertBefore(frame, container);
+                }
                 return;
             }
 
-            if (postView || id) {
-                router.navigate('read', postView || id);
+            // Normal View Logic
+            if(post || id) {
+                router.navigate('read', post || id);
                 if(params.get('embed')) {
                     document.querySelector('nav').style.display = 'none';
                     document.body.style.background = 'transparent';
