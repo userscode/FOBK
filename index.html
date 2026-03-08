@@ -3,422 +3,129 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CloudShield - Генератор защиты</title>
+    <title>You Are An Idiot!</title>
     <style>
-        :root {
-            --primary: #f38020;
-            --primary-hover: #e67300;
-            --bg: #f5f7fa;
-            --card: #ffffff;
-            --text: #2d3436;
-            --gray: #636e72;
-            --border: #dfe6e9;
-            --success: #00b894;
-            --danger: #d63031;
-        }
-
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            background-color: var(--bg);
-            color: var(--text);
             margin: 0;
             padding: 0;
+            background-color: white;
+            color: black;
+            font-family: "Comic Sans MS", cursive, sans-serif;
             display: flex;
             flex-direction: column;
-            min-height: 100vh;
-        }
-
-        /* Навигация */
-        nav {
-            background: #fff;
-            border-bottom: 1px solid var(--border);
-            padding: 1rem 2rem;
-            display: flex;
-            justify-content: space-between;
             align-items: center;
-            position: sticky;
-            top: 0;
-            z-index: 100;
-        }
-
-        .logo {
-            font-weight: bold;
-            font-size: 1.5rem;
-            color: var(--primary);
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .nav-links button {
-            background: none;
-            border: none;
-            padding: 0.5rem 1rem;
-            cursor: pointer;
-            font-weight: 500;
-            color: var(--gray);
-            border-radius: 4px;
-            transition: 0.2s;
-        }
-
-        .nav-links button.active {
-            color: var(--primary);
-            background: rgba(243, 128, 32, 0.1);
-        }
-
-        .container {
-            max-width: 1000px;
-            margin: 2rem auto;
-            padding: 0 1rem;
-            width: 100%;
-            box-sizing: border-box;
-        }
-
-        .card {
-            background: var(--card);
-            border-radius: 8px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-            padding: 2rem;
-            border: 1px solid var(--border);
-            margin-bottom: 1.5rem;
-        }
-
-        h2 { margin-top: 0; color: var(--text); }
-
-        .form-group { margin-bottom: 1.5rem; }
-        label { display: block; margin-bottom: 0.5rem; font-weight: 500; font-size: 0.9rem; }
-        input, select {
-            width: 100%;
-            padding: 0.75rem;
-            border: 1px solid var(--border);
-            border-radius: 6px;
-            box-sizing: border-box;
-            font-size: 1rem;
-        }
-
-        button.btn-primary {
-            background: var(--primary);
-            color: white;
-            border: none;
-            padding: 0.8rem 1.5rem;
-            border-radius: 6px;
-            font-size: 1rem;
-            cursor: pointer;
-            width: 100%;
-            font-weight: bold;
-            transition: background 0.2s;
-        }
-        button.btn-primary:hover { background: var(--primary-hover); }
-
-        /* Ссылка для захода */
-        .link-box {
-            background: #f1f2f6;
-            padding: 1rem;
-            border-radius: 6px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            margin-top: 1rem;
-            border: 1px dashed var(--primary);
-        }
-        .link-text {
-            flex-grow: 1;
-            font-family: monospace;
-            font-size: 0.9rem;
+            justify-content: center;
+            height: 100vh;
             overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
+            transition: background-color 0.1s;
         }
-        .copy-btn {
-            background: var(--primary);
+
+        .inverted {
+            background-color: black;
+            color: white;
+        }
+
+        h1 {
+            font-size: 5rem;
+            text-align: center;
+            user-select: none;
+        }
+
+        #start-btn {
+            padding: 15px 30px;
+            font-size: 1.5rem;
+            cursor: pointer;
+            background: #ff0000;
             color: white;
             border: none;
-            padding: 5px 10px;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 0.8rem;
+            border-radius: 10px;
+            box-shadow: 0 5px #990000;
+            z-index: 10;
         }
 
-        /* Verification UI */
-        .verification-container { text-align: center; padding: 3rem 1rem; }
-        .spinner {
-            width: 50px; height: 50px;
-            border: 5px solid #f3f3f3;
-            border-top: 5px solid var(--primary);
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-            margin: 20px auto;
-        }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-
-        .checkbox-wrapper {
-            border: 1px solid var(--border);
-            padding: 1.5rem;
-            display: inline-flex;
-            align-items: center;
-            gap: 15px;
-            border-radius: 4px;
-            background: #fafafa;
-            cursor: pointer;
+        #start-btn:active {
+            box-shadow: 0 2px #660000;
+            transform: translateY(4px);
         }
 
-        /* Stats */
-        table { width: 100%; border-collapse: collapse; margin-top: 1rem; }
-        th, td { text-align: left; padding: 12px; border-bottom: 1px solid var(--border); }
-        .status-badge { padding: 4px 8px; border-radius: 12px; font-size: 0.75rem; font-weight: bold; }
-        .status-success { background: #e6fffb; color: var(--success); }
-        .status-fail { background: #fff1f0; color: var(--danger); }
-
-        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 2rem; }
-        .stat-card { background: #f8f9fa; padding: 1.5rem; border-radius: 8px; text-align: center; }
-        .stat-value { font-size: 2rem; font-weight: bold; color: var(--primary); }
-
-        .hidden { display: none; }
+        .face {
+            font-size: 10rem;
+            margin-bottom: 20px;
+        }
     </style>
 </head>
 <body>
 
-    <nav id="main-nav">
-        <div class="logo">CloudShield</div>
-        <div class="nav-links">
-            <button id="nav-gen" class="active" onclick="showSection('gen')">Генератор</button>
-            <button id="nav-stats" onclick="showSection('stats')">Статистика</button>
-        </div>
-    </nav>
+    <div class="face">☺</div>
+    <h1>YOU ARE AN IDIOT!</h1>
+    <button id="start-btn">Нажми на меня!</button>
 
-    <div class="container">
-        
-        <!-- Генератор -->
-        <div id="section-gen" class="card">
-            <h2>Создать страницу проверки</h2>
-            <div class="form-group">
-                <label>URL сайта, куда перейдет юзер</label>
-                <input type="url" id="target-url" placeholder="https://example.com" value="https://google.com">
-            </div>
-            <div class="form-group">
-                <label>Тип проверки</label>
-                <select id="verification-type">
-                    <option value="checkbox">Я не робот (клик)</option>
-                    <option value="auto">Автоматически (5 сек)</option>
-                </select>
-            </div>
-            <div class="form-group">
-                <label>Заголовок страницы</label>
-                <input type="text" id="custom-message" value="Проверка безопасности вашего соединения">
-            </div>
-            <button class="btn-primary" onclick="saveSettings()">Создать и получить ссылку</button>
+    <script>
+        const body = document.body;
+        const btn = document.getElementById('start-btn');
+        let isFlashing = false;
 
-            <div id="generated-link-container" class="hidden">
-                <label style="margin-top: 1.5rem;">Ваша ссылка для распространения:</label>
-                <div class="link-box">
-                    <span class="link-text" id="share-link-display">Загрузка...</span>
-                    <button class="copy-btn" onclick="copyLink()">Копировать</button>
-                </div>
-            </div>
-        </div>
+        // Функция мерцания фона
+        function toggleInvert() {
+            body.classList.toggle('inverted');
+            setTimeout(toggleInvert, 100);
+        }
 
-        <!-- Страница проверки (Preview Mode) -->
-        <div id="section-preview" class="card hidden">
-            <div class="verification-container" id="verify-box">
-                <h1 id="view-message">Загрузка...</h1>
-                <p style="color: var(--gray)">Пожалуйста, подождите, мы проверяем ваш браузер.</p>
-                <div id="verify-action" style="margin: 30px 0;"></div>
-            </div>
-            <div id="success-box" class="verification-container hidden">
-                <div style="color: var(--success); font-size: 3rem;">✓</div>
-                <h2>Проверка успешно пройдена</h2>
-                <p>Сейчас вы будете перенаправлены...</p>
-            </div>
-        </div>
+        // Функция движения окна
+        function moveWindow(win) {
+            if (!win || win.closed) return;
 
-        <!-- Статистика -->
-        <div id="section-stats" class="card hidden">
-            <h2>Статистика посещений</h2>
-            <div class="stats-grid">
-                <div class="stat-card"><div class="stat-value" id="stat-total">0</div><div>Всего</div></div>
-                <div class="stat-card"><div class="stat-value" id="stat-passed" style="color: var(--success)">0</div><div>Прошли</div></div>
-            </div>
-            <div style="overflow-x: auto;">
-                <table id="logs-table">
-                    <thead>
-                        <tr>
-                            <th>Дата</th>
-                            <th>Браузер</th>
-                            <th>Статус</th>
-                        </tr>
-                    </thead>
-                    <tbody id="logs-body"></tbody>
-                </table>
-            </div>
-        </div>
-    </div>
+            const screenWidth = window.screen.availWidth;
+            const screenHeight = window.screen.availHeight;
+            const winWidth = 300;
+            const winHeight = 300;
 
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getFirestore, doc, setDoc, getDoc, collection, addDoc, onSnapshot, query } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-        import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+            let x = Math.random() * (screenWidth - winWidth);
+            let y = Math.random() * (screenHeight - winHeight);
 
-        const firebaseConfig = {
-            apiKey: "AIzaSyDb_xlpLYoVEkd1aObJjzvlS8-JPDjn72E",
-            authDomain: "generalapp-b4f45.firebaseapp.com",
-            databaseURL: "https://generalapp-b4f45-default-rtdb.firebaseio.com",
-            projectId: "generalapp-b4f45",
-            storageBucket: "generalapp-b4f45.firebasestorage.app",
-            messagingSenderId: "800461808673",
-            appId: "1:800461808673:web:ec6374f28c7a40ced7ef60",
-            measurementId: "G-JYL0G1J1GJ"
-        };
-
-        const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
-        const auth = getAuth(app);
-        const appId = "cloudflare-clone-v2";
-        const publicPath = ['artifacts', appId, 'public', 'data'];
-
-        let currentUser = null;
-
-        // Инициализация
-        window.onload = async () => {
-            await signInAnonymously(auth);
+            win.moveTo(x, y);
             
-            // Проверяем, зашел ли пользователь по специальной ссылке
-            const urlParams = new URLSearchParams(window.location.search);
-            if (urlParams.has('view')) {
-                showSection('preview');
-                document.getElementById('main-nav').classList.add('hidden');
-            }
-        };
+            setTimeout(() => moveWindow(win), 50);
+        }
 
-        onAuthStateChanged(auth, (user) => {
-            if (user) {
-                currentUser = user;
-                loadSettings();
-                listenToLogs();
+        btn.addEventListener('click', () => {
+            // Запуск мерцания
+            if (!isFlashing) {
+                toggleInvert();
+                isFlashing = true;
+                btn.style.display = 'none';
             }
+
+            // Пытаемся открыть "прыгающее" окно
+            // Внимание: большинство браузеров заблокируют это, если не разрешить всплывающие окна
+            const popup = window.open(
+                window.location.href, 
+                '_blank', 
+                'width=300,height=300,menubar=no,status=no,toolbar=no'
+            );
+
+            if (popup) {
+                moveWindow(popup);
+            } else {
+                console.warn("Пожалуйста, разрешите всплывающие окна для работы эффекта движения.");
+            }
+
+            // Воспроизведение звука (опционально, если есть файл)
+            // const audio = new Audio('idiot.mp3');
+            // audio.loop = true;
+            // audio.play();
         });
 
-        // Сохранение и генерация ссылки
-        window.saveSettings = async () => {
-            const settings = {
-                url: document.getElementById('target-url').value,
-                type: document.getElementById('verification-type').value,
-                message: document.getElementById('custom-message').value,
-                createdAt: new Date().toISOString()
+        // Если это уже открытое маленькое окно, заставляем его двигаться само
+        if (window.opener) {
+            btn.style.display = 'none';
+            toggleInvert();
+            
+            // Защита от закрытия (классическая фишка)
+            window.onbeforeunload = function() {
+                return "Вы уверены?";
             };
-
-            try {
-                await setDoc(doc(db, ...publicPath, 'settings', 'current'), settings);
-                
-                // Генерируем ссылку
-                const currentUrl = window.location.href.split('?')[0];
-                const shareLink = `${currentUrl}?view=true`;
-                
-                document.getElementById('share-link-display').innerText = shareLink;
-                document.getElementById('generated-link-container').classList.remove('hidden');
-                alert("Настройки обновлены!");
-            } catch (e) { console.error(e); }
-        };
-
-        async function loadSettings() {
-            const snap = await getDoc(doc(db, ...publicPath, 'settings', 'current'));
-            if (snap.exists()) {
-                const data = snap.data();
-                document.getElementById('target-url').value = data.url;
-                document.getElementById('verification-type').value = data.type;
-                document.getElementById('custom-message').value = data.message;
-                
-                if (window.location.search.includes('view')) {
-                    startVerification(data);
-                }
-            }
         }
-
-        function startVerification(settings) {
-            const actionBox = document.getElementById('verify-action');
-            document.getElementById('view-message').innerText = settings.message;
-            actionBox.innerHTML = '';
-
-            logActivity('Начало проверки', 'pending');
-
-            if (settings.type === 'auto') {
-                actionBox.innerHTML = '<div class="spinner"></div>';
-                setTimeout(() => finish(true), 4000);
-            } else {
-                const btn = document.createElement('div');
-                btn.className = 'checkbox-wrapper';
-                btn.innerHTML = '<div style="width:20px;height:20px;border:1px solid #ccc;background:#fff"></div> <span>Я не робот</span>';
-                btn.onclick = () => {
-                    btn.innerHTML = '<span style="color:green">✓</span> <span>Проверено</span>';
-                    finish(true);
-                };
-                actionBox.appendChild(btn);
-            }
-        }
-
-        async function finish(success) {
-            if (success) {
-                await logActivity('Успешный проход', 'passed');
-                document.getElementById('verify-box').classList.add('hidden');
-                document.getElementById('success-box').classList.remove('hidden');
-                
-                const url = document.getElementById('target-url').value;
-                setTimeout(() => {
-                    window.parent.postMessage({ type: 'redirect', url: url }, '*');
-                    console.log("Redirecting to: " + url);
-                }, 1500);
-            }
-        }
-
-        async function logActivity(action, status) {
-            if (!currentUser) return;
-            await addDoc(collection(db, ...publicPath, 'logs'), {
-                timestamp: new Date().toISOString(),
-                status: status,
-                ua: navigator.userAgent.split(') ')[1] || 'Unknown Browser'
-            });
-        }
-
-        function listenToLogs() {
-            onSnapshot(collection(db, ...publicPath, 'logs'), (snap) => {
-                const body = document.getElementById('logs-body');
-                body.innerHTML = '';
-                let passed = 0;
-                
-                const sorted = [...snap.docs].sort((a,b) => new Date(b.data().timestamp) - new Date(a.data().timestamp));
-                
-                sorted.forEach(d => {
-                    const data = d.data();
-                    if (data.status === 'passed') passed++;
-                    body.insertAdjacentHTML('beforeend', `
-                        <tr>
-                            <td>${new Date(data.timestamp).toLocaleTimeString()}</td>
-                            <td>${data.ua}</td>
-                            <td><span class="status-badge ${data.status === 'passed' ? 'status-success' : 'status-fail'}">${data.status}</span></td>
-                        </tr>
-                    `);
-                });
-                document.getElementById('stat-total').innerText = snap.size;
-                document.getElementById('stat-passed').innerText = passed;
-            });
-        }
-
-        window.copyLink = () => {
-            const text = document.getElementById('share-link-display').innerText;
-            const el = document.createElement('textarea');
-            el.value = text;
-            document.body.appendChild(el);
-            el.select();
-            document.execCommand('copy');
-            document.body.removeChild(el);
-            alert("Ссылка скопирована!");
-        };
-
-        window.showSection = (id) => {
-            document.querySelectorAll('.card').forEach(c => c.classList.add('hidden'));
-            document.getElementById('section-' + id).classList.remove('hidden');
-            document.querySelectorAll('.nav-links button').forEach(b => b.classList.remove('active'));
-            document.getElementById('nav-' + id).classList.add('active');
-        };
     </script>
 </body>
 </html>
