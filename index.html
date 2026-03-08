@@ -3,128 +3,192 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>You Are An Idiot!</title>
+    <title>Hypnotic Experience</title>
     <style>
-        body {
+        body, html {
             margin: 0;
             padding: 0;
-            background-color: white;
-            color: black;
-            font-family: "Comic Sans MS", cursive, sans-serif;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background-color: #000;
             display: flex;
-            flex-direction: column;
             align-items: center;
             justify-content: center;
-            height: 100vh;
-            overflow: hidden;
-            transition: background-color 0.1s;
+            font-family: "Arial Black", Gadget, sans-serif;
         }
 
-        .inverted {
-            background-color: black;
-            color: white;
+        /* Гипнотическая спираль на фоне */
+        #spiral-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1;
+            opacity: 0.5;
+            filter: blur(2px);
+        }
+
+        .spiral {
+            width: 200vmax;
+            height: 200vmax;
+            background: conic-gradient(
+                from 0deg,
+                #ff0000, #ffff00, #00ff00, #00ffff, #0000ff, #ff00ff, #ff0000
+            );
+            border-radius: 50%;
+            animation: rotate-spiral 2s linear infinite;
+        }
+
+        @keyframes rotate-spiral {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        /* Основной контент */
+        #content-wrapper {
+            position: relative;
+            z-index: 10;
+            text-align: center;
+            pointer-events: none;
         }
 
         h1 {
-            font-size: 5rem;
-            text-align: center;
+            font-size: 8vw;
+            color: white;
+            text-shadow: 5px 5px #ff0000, -5px -5px #0000ff;
+            margin: 0;
+            animation: shake 0.1s infinite, scale-text 1s ease-in-out infinite alternate;
             user-select: none;
         }
 
-        #start-btn {
-            padding: 15px 30px;
-            font-size: 1.5rem;
-            cursor: pointer;
-            background: #ff0000;
-            color: white;
-            border: none;
-            border-radius: 10px;
-            box-shadow: 0 5px #990000;
-            z-index: 10;
-        }
-
-        #start-btn:active {
-            box-shadow: 0 2px #660000;
-            transform: translateY(4px);
-        }
-
         .face {
-            font-size: 10rem;
-            margin-bottom: 20px;
+            font-size: 15vw;
+            animation: bounce 0.5s infinite alternate;
+        }
+
+        /* Эффекты анимации */
+        @keyframes shake {
+            0% { transform: translate(2px, 1px) rotate(0deg); }
+            20% { transform: translate(-1px, -2px) rotate(-1deg); }
+            40% { transform: translate(-3px, 0px) rotate(1deg); }
+            60% { transform: translate(3px, 2px) rotate(0deg); }
+            80% { transform: translate(1px, -1px) rotate(1deg); }
+            100% { transform: translate(-1px, 2px) rotate(-1deg); }
+        }
+
+        @keyframes scale-text {
+            from { transform: scale(0.8); }
+            to { transform: scale(1.2); }
+        }
+
+        @keyframes bounce {
+            from { transform: translateY(-20px); }
+            to { transform: translateY(20px); }
+        }
+
+        /* Кнопка запуска */
+        #overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.9);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+            cursor: pointer;
+        }
+
+        .start-msg {
+            color: white;
+            font-size: 2rem;
+            border: 4px solid white;
+            padding: 20px 40px;
+            border-radius: 50px;
+            transition: all 0.3s;
+        }
+
+        .start-msg:hover {
+            background: white;
+            color: black;
+        }
+
+        /* Имитация движения окна внутри страницы */
+        .window-mimic {
+            position: absolute;
+            border: 10px solid #fff;
+            background: #000;
+            padding: 20px;
+            pointer-events: none;
+            box-shadow: 0 0 50px rgba(255,255,255,0.5);
         }
     </style>
 </head>
 <body>
 
-    <div class="face">☺</div>
-    <h1>YOU ARE AN IDIOT!</h1>
-    <button id="start-btn">Нажми на меня!</button>
+    <div id="overlay" onclick="startEffects()">
+        <div class="start-msg">НАЖМИ, ЧТОБЫ ВОЙТИ</div>
+    </div>
+
+    <div id="spiral-container" style="display: none;">
+        <div class="spiral"></div>
+    </div>
+
+    <div id="content-wrapper" style="display: none;">
+        <div class="face">🤡</div>
+        <h1>YOU ARE AN IDIOT!</h1>
+    </div>
 
     <script>
-        const body = document.body;
-        const btn = document.getElementById('start-btn');
-        let isFlashing = false;
+        function startEffects() {
+            document.getElementById('overlay').style.display = 'none';
+            document.getElementById('spiral-container').style.display = 'flex';
+            document.getElementById('content-wrapper').style.display = 'block';
+            
+            // Запуск мерцания фона
+            setInterval(() => {
+                document.body.style.backgroundColor = 
+                    document.body.style.backgroundColor === 'white' ? 'black' : 'white';
+            }, 50);
 
-        // Функция мерцания фона
-        function toggleInvert() {
-            body.classList.toggle('inverted');
-            setTimeout(toggleInvert, 100);
+            // Создание "плавающих окон" внутри страницы
+            for(let i = 0; i < 5; i++) {
+                createFloatingWindow();
+            }
         }
 
-        // Функция движения окна
-        function moveWindow(win) {
-            if (!win || win.closed) return;
+        function createFloatingWindow() {
+            const win = document.createElement('div');
+            win.className = 'window-mimic';
+            win.innerHTML = '<div style="font-size:3rem">☺</div><div style="color:white">IDIOT</div>';
+            document.body.appendChild(win);
 
-            const screenWidth = window.screen.availWidth;
-            const screenHeight = window.screen.availHeight;
-            const winWidth = 300;
-            const winHeight = 300;
+            let x = Math.random() * window.innerWidth;
+            let y = Math.random() * window.innerHeight;
+            let dx = (Math.random() - 0.5) * 15;
+            let dy = (Math.random() - 0.5) * 15;
 
-            let x = Math.random() * (screenWidth - winWidth);
-            let y = Math.random() * (screenHeight - winHeight);
+            function animate() {
+                x += dx;
+                y += dy;
 
-            win.moveTo(x, y);
-            
-            setTimeout(() => moveWindow(win), 50);
-        }
+                if (x + 150 > window.innerWidth || x < 0) dx *= -1;
+                if (y + 100 > window.innerHeight || y < 0) dy *= -1;
 
-        btn.addEventListener('click', () => {
-            // Запуск мерцания
-            if (!isFlashing) {
-                toggleInvert();
-                isFlashing = true;
-                btn.style.display = 'none';
+                win.style.left = x + 'px';
+                win.style.top = y + 'px';
+                win.style.transform = `rotate(${x/10}deg)`;
+
+                requestAnimationFrame(animate);
             }
-
-            // Пытаемся открыть "прыгающее" окно
-            // Внимание: большинство браузеров заблокируют это, если не разрешить всплывающие окна
-            const popup = window.open(
-                window.location.href, 
-                '_blank', 
-                'width=300,height=300,menubar=no,status=no,toolbar=no'
-            );
-
-            if (popup) {
-                moveWindow(popup);
-            } else {
-                console.warn("Пожалуйста, разрешите всплывающие окна для работы эффекта движения.");
-            }
-
-            // Воспроизведение звука (опционально, если есть файл)
-            // const audio = new Audio('idiot.mp3');
-            // audio.loop = true;
-            // audio.play();
-        });
-
-        // Если это уже открытое маленькое окно, заставляем его двигаться само
-        if (window.opener) {
-            btn.style.display = 'none';
-            toggleInvert();
-            
-            // Защита от закрытия (классическая фишка)
-            window.onbeforeunload = function() {
-                return "Вы уверены?";
-            };
+            animate();
         }
     </script>
 </body>
